@@ -9,25 +9,28 @@ Demo script showing detections in OIRDS images.
 """
 
 import _init_paths
-from fast_rcnn.config import cfg
 from fast_rcnn.test import im_detect
 from utils.cython_nms import nms
 from utils.timer import Timer
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.io as sio
 import caffe, os, sys, cv2
 import argparse
 
 CLASSES = ('__background__',
-           'TRUCK', 'PICK-UP', 'VAN', 'CAR', 'UNKNOWN')
+#           'CAR', 'PICK-UP', 'UNKNOWN', 'TRUCK', 'VAN')
+#           0, 1, 2, 3, 4)
+#           'NO_VEHICLE', 'VEHICLE')
+           0, 1)
 
-NETS = {'vgg16': ('VGG16',
-                  'vgg16_fast_rcnn_iter_40000.caffemodel'),
-        'vgg_cnn_m_1024': ('VGG_CNN_M_1024',
-                           'vgg_cnn_m_1024_fast_rcnn_iter_40000.caffemodel'),
-        'caffenet': ('CaffeNet',
-                     'caffenet_fast_rcnn_iter_40000.caffemodel')}
+NETS = {'oird_caffe': ('OIRDS_CaffeNet',
+                       'single2_train_iter_41.caffemodel')} 
+# NETS = {'vgg16': ('VGG16',
+#                   'vgg16_fast_rcnn_iter_40000.caffemodel'),
+#         'vgg_cnn_m_1024': ('VGG_CNN_M_1024',
+#                            'vgg_cnn_m_1024_fast_rcnn_iter_40000.caffemodel'),
+#         'caffenet': ('CaffeNet',
+#                      'caffenet_fast_rcnn_iter_40000.caffemodel')}
 
 
 def vis_detections(im, class_name, dets, thresh=0.5):
@@ -58,24 +61,21 @@ def vis_detections(im, class_name, dets, thresh=0.5):
                   'p({} | box) >= {:.1f}').format(class_name, class_name,
                                                   thresh),
                   fontsize=14)
-    # plt.axis('off')
-    # plt.tight_layout()
-    # plt.draw()
+    plt.axis('off')
+    plt.tight_layout()
+    plt.draw()
 
 def demo(net, image_name, classes):
     """Detect object classes in an image using pre-computed object proposals."""
 
-    # Load pre-computed Selected Search object proposals
-    box_file = '/opt/fast-rcnn/data/demo/001551_boxes.mat'
-    # os.path.join(cfg.ROOT_DIR, 'data', 'demo',
-    #                            image_name + '_boxes.mat')
-    obj_proposals = sio.loadmat(box_file)['boxes']
+    # Load pre-computed object proposals (try Selected Search, later).
+    obj_proposals = np.loadtxt('/data/object_proposals/oirds.csv',dtype=int)
 
-    # Load the demo image
-    im_file = os.path.join(cfg.ROOT_DIR, 'data', 'demo', image_name + '.jpg')
+    # Load the demo image (contains four cars and one unknown).
+    im_file = '/data/OIRDS/train/crop/16546686_257_4353_513_4609.png'
     im = cv2.imread(im_file)
 
-    # Detect all object classes and regress object bounds
+    # Detect all object classes and regress object bounds.
     timer = Timer()
     timer.tic()
     scores, boxes = im_detect(net, im, obj_proposals)
@@ -83,7 +83,7 @@ def demo(net, image_name, classes):
     print ('Detection took {:.3f}s for '
            '{:d} object proposals').format(timer.total_time, boxes.shape[0])
 
-    # Visualize detections for each class
+    # Visualize detections for each class.
     CONF_THRESH = 0.8
     NMS_THRESH = 0.3
     for cls in classes:
@@ -117,32 +117,29 @@ def parse_args():
     return args
 
 if __name__ == '__main__':
-    args = parse_args()
+ #   args = parse_args()
 
-    prototxt = os.path.join(cfg.ROOT_DIR, 'models', NETS[args.demo_net][0],
-                            'test.prototxt')
-    caffemodel = os.path.join(cfg.ROOT_DIR, 'data', 'fast_rcnn_models',
-                              NETS[args.demo_net][1])
+    prototxt = '/opt/fast-rcnn/models/CaffeNet/oirds/single_solver2.prototxt'
+
+    caffemodel = '/opt/fast-rcnn/models/CaffeNet/oirds/single2_train_iter_41.caffemodel'
+
 
     if not os.path.isfile(caffemodel):
         raise IOError(('{:s} not found.\nDid you run ./data/scripts/'
                        'fetch_fast_rcnn_models.sh?').format(caffemodel))
 
-    if args.cpu_mode:
-        caffe.set_mode_cpu()
-    else:
-        caffe.set_mode_gpu()
-        caffe.set_device(args.gpu_id)
+    # if args.cpu_mode:
+    #     caffe.set_mode_cpu()
+    # else:
+    caffe.set_mode_gpu()
+    caffe.set_device(0)
+    #     caffe.set_device(args.gpu_id)
     net = caffe.Net(prototxt, caffemodel, caffe.TEST)
 
     print '\n\nLoaded network {:s}'.format(caffemodel)
 
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    print 'Demo for data/demo/000004.jpg'
-    demo(net, '000004', ('car',))
-
-    print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    print 'Demo for data/demo/001551.jpg'
-    demo(net, '001551', ('sofa', 'tvmonitor'))
+    print 'Demo for data/OIRDS/train/crop/16546686_257_4353_513_4609.png'
+    demo(net, '16546686_257_4353_513_4609.png', (0,2))
 
     plt.show()

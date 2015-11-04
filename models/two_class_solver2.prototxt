@@ -1,0 +1,21 @@
+net: "/opt/fast-rcnn/models/CaffeNet/train.prototxt"
+# net: "/opt/fast-rcnn/models/CaffeNet/oirds/two_class_train_val.prototxt"
+test_iter: 1 
+# 000
+test_interval: 1 
+# 000
+base_lr: 0.01
+lr_policy: "step"
+gamma: 0.1
+stepsize: 100000
+display: 20
+max_iter: 45 
+# 0000
+momentum: 0.9
+weight_decay: 0.0005
+snapshot: 0
+# 45
+# 10000
+# snapshot_prefix: "two_class_train"
+snapshot_prefix: "/opt/fast-rcnn/models/CaffeNet/oirds/two_class_train2"
+solver_mode: GPU

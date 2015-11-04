@@ -6,15 +6,18 @@
 
 """Train a Fast R-CNN network on a region of interest database."""
 
+import sys
+sys.path.insert(0, '/opt/fast-rcnn/tools/two_class_oirds')
+
 import _init_paths
 from fast_rcnn.train import get_training_roidb, train_net
 from fast_rcnn.config import cfg, cfg_from_file, cfg_from_list, get_output_dir
-from datasets.factory import get_imdb
+# from datasets.factory import get_imdb
 import caffe
 import argparse
 import pprint
 import numpy as np
-import sys
+
 
 def parse_args():
     """
@@ -80,7 +83,8 @@ if __name__ == '__main__':
     imdb = get_imdb(args.imdb_name)
     print 'Loaded dataset `{:s}` for training'.format(imdb.name)
     roidb = get_training_roidb(imdb)
-
+    # from fast_rcnn.train
+    # from roi_data_layer.roidb
     output_dir = get_output_dir(imdb, None)
     print 'Output will be saved to `{:s}`'.format(output_dir)
 
