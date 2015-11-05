@@ -119,7 +119,7 @@ def parse_args():
 if __name__ == '__main__':
  #   args = parse_args()
 
-    prototxt = '/opt/fast-rcnn/models/CaffeNet/oirds/single_solver2.prototxt'
+    prototxt = '/opt/fast-rcnn/models/CaffeNet/oirds/single_train_val2.prototxt'
 
     caffemodel = '/opt/fast-rcnn/models/CaffeNet/oirds/single2_train_iter_41.caffemodel'
 
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     print '\n\nLoaded network {:s}'.format(caffemodel)
 
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    print 'Demo for data/OIRDS/train/crop/16546686_257_4353_513_4609.png'
-    demo(net, '16546686_257_4353_513_4609.png', (0,2))
+    print 'Demo for /data/OIRDS/train/crop/16546686_257_4353_513_4609.png'
+    demo(net, '/data/OIRDS/train/crop/16546686_257_4353_513_4609.png', (0,2))
 
     plt.show()

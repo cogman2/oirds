@@ -6,7 +6,7 @@ do
     cd DataSet_$i
     for j in $(ls *tif | sed 's/....$//')
     do
-	convert $j.tif ../test/png/$i_$j.png
+	convert $j.tif ../train/png/$i_$j.png
     done
     cd ..
 done
