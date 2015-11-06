@@ -49,7 +49,18 @@ cd ..
 ./data/scripts/fetch_fast_rcnn_models.sh # optional
 
 # Download the Overhead Imagery Research Dataset.
-mkdir -p /data
+mkdir -p /data/OIRDS/train/png
 wget http://sourceforge.net/projects/oirds/files/OIRDS%20-%20Vehicles/1.0/OIRDS_v1_0.zip
 gunzip OIRDS_v1_0.zip
 mv OIRDS_v1_0 /data/OIRDS
+
+# Use ImageMagick to convert from 
+./convert_to_png.sh
+
+# Crop.
+python crop.py 40
+
+# Create bounding boxes.
+mkdir -p /data/object_proposals
+python obj_proposals.py
+
