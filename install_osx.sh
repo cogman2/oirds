@@ -20,7 +20,7 @@ source activate python2
 #   In other `ENV` settings, things may not work as expected.
 brew install --fresh -vd snappy leveldb gflags glog szip lmdb imagemagick
 brew tap homebrew/science
-brew install hdf5 opencv
+brew install -y cmake hdf5 opencv
 
 # If using Anaconda Python, a modification to the OpenCV formula 
 # might be needed.  Do `brew edit opencv` and change the lines 
@@ -49,10 +49,9 @@ cd ..
 ./data/scripts/fetch_fast_rcnn_models.sh # optional
 
 # Download the Overhead Imagery Research Dataset.
-mkdir -p /data/OIRDS/train/png
+mkdir -p /data/oirds/png
 wget http://sourceforge.net/projects/oirds/files/OIRDS%20-%20Vehicles/1.0/OIRDS_v1_0.zip
-gunzip OIRDS_v1_0.zip
-mv OIRDS_v1_0 /data/OIRDS
+unzip OIRDS_v1_0.zip -d /data/oirds
 
 # Use ImageMagick to convert from 
 ./convert_to_png.sh
@@ -63,4 +62,3 @@ python crop.py 40
 # Create bounding boxes.
 mkdir -p /data/object_proposals
 python obj_proposals.py
-
