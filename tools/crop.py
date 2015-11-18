@@ -70,7 +70,7 @@ def main():
             
                 im2 = im1.crop((l,u,r,low))
                 uid = total.iloc[i,1][:-4]+str(total.iloc[i,2])+'_'+str(chip_size)
-                fname = '/data/oirds/crop/'+uid+'c.png'
+                fname = 'crop/'+uid+'c.png'
                 im2.save(fname)
                 if i % 5 == 0:
                     test.write(fname+' 1\n')
@@ -97,8 +97,8 @@ def main():
                             im3 = im1.crop((left, upper, right, lower))
                             code = j*h/chip_size+k
                             uid = total.iloc[i,1][:-4]+str(code)+'_'+str(chip_size)
-                            fname = '/data/oirds/no_car_crop/'+uid+'R.png'
-                            im3.save(fname)
+                            fname = 'no_car_crop/'+uid+'R.png'
+                            im3.save('/data/oirds/'+fname)
                             if counter % 5 == 0:
                                 test.write(fname+' 0\n')
                             else:
@@ -116,8 +116,8 @@ def main():
                             im3 = im1.crop((left, upper, right, lower))
                             code = m*h/chip_size+n
                             uid = total.iloc[i,1][:-4]+str(code)+'_'+str(chip_size)
-                            fname = '/data/oirds/no_car_crop/'+uid+'L.png'
-                            im3.save(fname)
+                            fname = 'no_car_crop/'+uid+'L.png'
+                            im3.save('/data/oirds/'+fname)
                             if counter % 5 == 0:
                                 test.write(fname+' 0\n')
                             else:

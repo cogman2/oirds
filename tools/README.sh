@@ -14,11 +14,11 @@
 # Use this to check the glogs:
 # ls -t /tmp | grep $USER.log.INFO.201510 | xargs cat
 #=================================================================
-EXAMPLE=/opt/fast-rcnn/examples/oirds
-DATA=/data/OIRDS/train
-TOOLS=/opt/fast-rcnn/caffe-fast-rcnn/build/tools
-TRAIN_DATA_ROOT=$DATA/
-VAL_DATA_ROOT=$DATA/
+EXAMPLE=/opt/caffe/git/caffe/examples/
+DATA=/data/oirds
+TOOLS=/opt/caffe/bin
+TRAIN_DATA_ROOT=
+VAL_DATA_ROOT=
 
 # Set RESIZE=true to resize the images to 256x256. Leave as false if images have
 # already been resized using another tool.
@@ -51,7 +51,7 @@ echo "Creating train lmdb..."
 # ROOTFOLDER/ LISTFILE DB_NAME
 GLOG_logtostderr=1 $TOOLS/convert_imageset \
     $TRAIN_DATA_ROOT \
-    $DATA/train.txt \
+    $DATA/train100.txt \
     $EXAMPLE/oirds_train_lmdb
      # --resize_height=$RESIZE_HEIGHT \
      # --resize_width=$RESIZE_WIDTH \
@@ -61,7 +61,7 @@ echo "Creating val lmdb..."
 
 GLOG_logtostderr=1 $TOOLS/convert_imageset \
     $VAL_DATA_ROOT \
-    $DATA/val.txt \
+    $DATA/val100.txt \
     $EXAMPLE/oirds_val_lmdb
     # --resize_height=$RESIZE_HEIGHT \
     # --resize_width=$RESIZE_WIDTH \
@@ -75,22 +75,21 @@ echo "Lightning Memory-mapped Database creation done."
 # 2 - Compute the mean image from the oirds training lmdb
 # N.B. this is available in data/oirds
 #=================================================================
-# $TOOLS/compute_image_mean $EXAMPLE/oirds_train_lmdb \
-#   $DATA/oirds_mean.binaryproto
-
+$TOOLS/compute_image_mean $EXAMPLE/oirds_train_lmdb \
+    $DATA/oirds_mean.binaryproto
 # echo "Mean image done."
 
 #=================================================================
 # 3 - The network definition
 #=================================================================
-# emacs /opt/fast-rcnn/models/CaffeNet/oirds/single_train_val2.prototxt
-# emacs /opt/fast-rcnn/models/CaffeNet/oirds/single_solver2.prototxt
+# emacs /opt/caffe/models/oirds/single_train_val2.prototxt
+# emacs /opt/caffe/models/oirds/single_solver2.prototxt
 
 #=================================================================
 # 4 - Train an OIRDS CNN model on CaffeNet.
 # I changed the number of outputs at the end to 5.
 #=================================================================
-$CAFFE_HOME/build/tools/caffe train -solver /opt/fast-rcnn/models/CaffeNet/oirds/single_solver2.prototxt -gpu 0
+$CAFFE_HOME/bin/caffe train -solver /opt/caffe/models/oirds/single_solver2.prototxt -gpu 0
 
 #=================================================================
 # PREPARE A DEMONSTRATION.

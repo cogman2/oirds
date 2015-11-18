@@ -14,7 +14,9 @@ yum install -y sqlite-devel
 yum install -y openssl-devel
 yum install -y doxygen
 yum install -y bzip2-devel
-yum install -y ImageMagick-devel.x86_64
+yum install -y ImageMagick-devel
+yum install -y freetype-devel
+yum install -y libpng-devel
 
 # install glog
 wget https://google-glog.googlecode.com/files/glog-0.3.3.tar.gz
@@ -41,10 +43,12 @@ tar xvf distribute-0.6.35.tar.gz
 cd distribute-0.6.35
 python setup.py install
 easy_install-2.7 pip
-pip2.7 install numpy
+pip2.7 install numpy cython scikit-image
 
 # install cuda (obtained rpm from NVIDIA)
-wget http://developer.download.nvidia.com/compute/cuda/repos/rhel6/x86_64/cuda-repo-rhel6-7.0-28.x86_64.rpm
+#wget http://developer.download.nvidia.com/compute/cuda/repos/rhel6/x86_64/cuda-repo-rhel6-7.0-28.x86_64.rpm
+# yum remove -y `cat cuda_remove`
+wget -r --no-parent wget http://developer.download.nvidia.com/compute/cuda/repos/rhel6/x86_64
 rpm -i cuda-repo-rhel6-7.0-28.x86_64.rpm
 #wget http://developer.download.nvidia.com/compute/cuda/repos/rhel6/x86_64/cuda-repo-rhel6-7.5-18.x86_64.rpm
 #rpm -i cuda-repo-rhel6-7.5-18.x86_64.rpm
@@ -113,4 +117,6 @@ unzip OIRDS_v1_0.zip -d /data/oirds
 # Crop.
 python crop.py 40
 
-# Get the ImageNet pre-trained model.
+# Get the ImageNet pre-trained model for fine-tuning.
+wget http://dl.caffe.berkeleyvision.org/bvlc_reference_caffenet.caffemodel
+mv bvlc_reference_caffenet.caffemodel /opt/caffe/models/finetune_flickr_style

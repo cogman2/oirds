@@ -3,7 +3,11 @@
 def main():
   import os, sys, subprocess
   sys.path.append("/opt/caffe/python")
+  import matplotlib
+  # Facilitate headless usage.
+  matplotlib.use('Agg')
   import caffe
+  
   #=================================================================
   # 0 - Segment the OIRDS dataset into single-object test and train
   # sets (train.txt and val.txt) with the desired chip size.
@@ -18,7 +22,7 @@ def main():
   #=================================================================
   example='/opt/caffe/git/caffe/examples'
   data='/data/oirds'
-  tools='/opt/caffe/build/tools'
+  tools='/opt/caffe/bin'
   train_data_root=data+'/'
   val_data_root=data+'/'
 
@@ -33,13 +37,25 @@ def main():
     resize_width=0
 
   patch_size = sys.argv[1]
-  db_train = '/train_'+patch_size+'_lmdb'
-  db_val = '/val_'+patch_size+'_lmdb'
+  db_train = '/oirds_train'+patch_size+'_lmdb'
+  db_val = '/oirds_val'+patch_size+'_lmdb'
   if os.path.isdir(example+db_train):
-    os.rmdir(example+db_train)
-  if os.path.isdir(db_val):
-    os.rmdir(db_val)
-  print "Creating train lmdb..."
+    for root, dirs, files in os.walk(example+db_train, topdown=False):
+      for name in files:
+        os.remove(os.path.join(root, name))
+      for name in dirs:
+        os.rmdir(os.path.join(root, name))
+      os.rmdir(root)
+
+  if os.path.isdir(example+db_val):
+    for root, dirs, files in os.walk(example+db_val, topdown=False):
+      for name in files:
+        os.remove(os.path.join(root, name))
+      for name in dirs:
+        os.rmdir(os.path.join(root, name))
+      os.rmdir(root)
+
+  print 'Creating train lmdb...'
 
   # rootfolder/ listfile db_name
   subprocess.call(['glog_logtostderr=1',
@@ -77,46 +93,6 @@ def main():
                    ])
 
   print "Mean image done"
-
-  #=================================================================
-  # 3 - The network definition
-  #     Builds prototxt files from previous versions.
-  #=================================================================
-  os.chdir('/opt/caffe/models/finetune_flickr_style/')
-  network = 'train_val_'+patch_size+'.prototxt'
-  with open('train_val.prototxt', 'r') as f:
-    with open(network, 'w+') as train:
-      for line in f:
-        if 'train_lmdb' in line:
-          train.write(line[:-18]+db_train)
-        elif 'oirds_mean' in line:
-          train.write(line[:-24]+train_mean)
-        elif 'val_lmdb' in line:
-          train.write(line[:-16]+db_val)
-        else:
-          train.write(line)
-
-  solver = 'solver_'+patch_size+'.prototxt'
-  with open('solver.prototxt', 'r') as g:
-    with open(solver, 'w+') as test:
-      for line in g:
-        if 'net:' in line:
-          test.write(line[:-27]+solver+'\"')
-        elif 'max_iter:' in line:
-          test.write('max_iter: 50')
-        elif 'prefix:' in line:
-          test.write(line[:-14]+'train_'+patch_size)
-        else:
-          test.write(line)
-
-  #=================================================================
-  # 4 - Train a CNN model on OIRDS.
-  #=================================================================
-  subprocess.call([tools+'/caffe train',
-                   '-solver '+solver,
-                   '-weights bvlc_reference_caffenet.caffemodel',
-                   '-gpu 0'
-                   ])
     
 if __name__=='__main__':
   main()
