@@ -1,14 +1,21 @@
 #!/usr/bin/env python
 #=================================================================
-#  Select patches of a certain size around objects in the images, 
-# and create training and validation set files.  This approach
-# puts all the images in the same folders, and depends on the .txt
-# files to keep them separate (though filesnames also distinguish
-# crop sizes and measures of rotation).
+# 1. Load the metadata from .xls files.
+# 2. Correct for ground sample distance variation.
+# 3. Remove vehicles with shadows.
+# 4. Rotate the images in 15 degree increments.
+# * - We are currently missing Chul's centroid and polygon corrections.
+# 6. Select patches of a given size around vehicles in the images.
+# 7. Crop 'no vehicle' patches from images with only one vehicle.
+# 8. Create the corresponding training and validation set .txt files.
+#
+#  This approach puts all the images in the same folders, and depends
+#  on the .txt files to keep them separate (though filesnames also 
+#  distinguish crop sizes and measures of rotation).
 # 
 # Example usage: sudo ./prep.py <crop size> <rotate>
 # 
-# crop size .......... dimensions in pixels (int)
+# crop size .......... dimensions in pixels          (int)
 # rotate ............. should the images be rotated? (bool)
 #=================================================================
 
@@ -17,19 +24,19 @@ def load_xl(data_dir):
     total = pd.DataFrame()
     for i in range(20): 
         fname = data_dir+'/DataSet_'+str(i+1)+'/DataSet'+str(i+1)+'.xls'
-        book = pd.read_excel(io=fname, sheetname=0, parse_cols=[1,2,3,7,8,9,15,46,47])
+        book = pd.read_excel(io=fname, sheetname=0, parse_cols=[1,2,3,7,8,9,15,28,47])
         total = total.append(book)
 
     total = total[['Image Path', 'Image Name', 'Target Number', 
                    'Intersection Polygon', 'Average Target Centroid',
                    'Mode of Target Type', 'Average Target Orientation',
-                   'Mode of Image Size', 'Average GSD']]
-    im_sizes = total.iloc[:,7].unique()
-    im_sizes.sort()
-    print 'Image sizes:\n'
-    for x in im_sizes:
-        print x
-    total.to_csv(data_dir+'/datasets.csv')
+                   'Average Target Shadow %', ' Average GSD']]
+    # im_sizes = total.iloc[:,7].unique()
+    # im_sizes.sort()
+    # print 'Image sizes:\n'
+    # for x in im_sizes:
+    #     print x
+    # total.to_csv(data_dir+'/datasets.csv')
     
 
 # rm -rf a folder
@@ -43,17 +50,50 @@ def rmrf(folder):
             os.rmdir(root)
 
 
+# Ground sample distance normalization
+# - Zooms in to match the minimum value
+def gsd(df):
+    # Average GSD
+    val = np.unique(df.iloc[:,8].values)
+    base = val.min()
+    multiplier = gsd / base
+    os.mkdir('/data/oirds/zoom')
+    for i, gsd in enumerate(df.iloc[:,8]):
+        i, gsd = 0, .1524
+        original = df.iloc[i,1][:-3]+'png'
+        infile = '/data/oirds/png/'+original
+        outfile = '/data/oirds/zoom/'+original
+        im = Image.open(infile)
+        x_size = int(im.size[0] * multiplier)
+        y_size = int(im.size[1] * multiplier)
+        im = im.resize((x_size, y_size), Image.ANTIALIAS)
+        im.save(outfile)
+
+        # The polygon
+        matrix = df.iloc[i,3][1:-1].split(';')]
+        matrix = [x.split(' ') for x in matrix]
+        matrix = pd.DataFrame(matrix)
+        matrix = matrix.convert_objects(convert_numeric=True)
+        matrix = matrix.multiply(multiplier).astype('int')
+        matrix = matrix.to_string(header=False, index=False)
+        df.iloc[i,3] = re.sub(r' +', ' ', matrix).replace('\n ', ';')
+
+        # The centroid
+        center = pd.to_numeric(df.iloc[1,4][1:-1].split())
+        df.iloc[1,4] *= multiplier
+
+
 def main():
     import os
     from PIL import Image
     import pandas as pd
+    import numpy as np
     import sys
     if sys.version_info[0] < 3:
         from StringIO import StringIO
     else:
         from io import StringIO
 
-    subprocess.call(['gsd_fix.py'])
     try:
         chip_size = int(sys.argv[1])
         half_chip = chip_size/2
@@ -67,13 +107,20 @@ def main():
         testfile = data+'/val'+str(chip_size)+'.txt'
 
     except ValueError:
-        crop = False
+        crop = 0
         chip_size = ''
 
     data = '/data/oirds'
+    # Extract data from the spreadsheets.
     load_xl(data)
-    total = pd.read_csv(data+'/datasets.csv', index_col=0)
+    #total = pd.read_csv(data+'/datasets.csv', index_col=0)
 
+    # Correct for ground sample distance variation.
+    gsd(total)
+
+    # Exclude vehicles with shadow values greater than or equal to 0.1.
+    total = total[total['Average Target Shadow %'] < 0.1]
+    
     # Find the names of images with a second target.
     multiples = total[total.iloc[:,2]==2].iloc[:,1]
     # Limit the number of no-vehicle chips to the number of vehicle chips.
@@ -103,7 +150,7 @@ def main():
                         else:
                             train.write(fname+' 1\n')
                         
-                if crop = True:
+                if crop != 0:
                     # Crop the image around the vehicles.
                     txt = 'x y\n'+ctr.replace(']','').replace('[','')
                     io_txt = StringIO(txt)
