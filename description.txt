@@ -1,0 +1,747 @@
+CentOS Linux release 7.1.1503 (Core) 
+Derived from Red Hat Enterprise Linux 7.1 (Source)
+NAME="CentOS Linux"
+VERSION="7 (Core)"
+ID="centos"
+ID_LIKE="rhel fedora"
+VERSION_ID="7"
+PRETTY_NAME="CentOS Linux 7 (Core)"
+ANSI_COLOR="0;31"
+CPE_NAME="cpe:/o:centos:centos:7"
+HOME_URL="https://www.centos.org/"
+BUG_REPORT_URL="https://bugs.centos.org/"
+
+CENTOS_MANTISBT_PROJECT="CentOS-7"
+CENTOS_MANTISBT_PROJECT_VERSION="7"
+REDHAT_SUPPORT_PRODUCT="centos"
+REDHAT_SUPPORT_PRODUCT_VERSION="7"
+
+CentOS Linux release 7.1.1503 (Core) 
+CentOS Linux release 7.1.1503 (Core) 
+cpe:/o:centos:centos:7
+Linux cnn-gpu-04.ec2.internal 3.10.0-229.20.1.el7.x86_64 #1 SMP Tue Nov 3 19:10:07 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
+00:00.0 Host bridge: Intel Corporation 440FX - 82441FX PMC [Natoma] (rev 02)
+00:01.0 ISA bridge: Intel Corporation 82371SB PIIX3 ISA [Natoma/Triton II]
+00:01.1 IDE interface: Intel Corporation 82371SB PIIX3 IDE [Natoma/Triton II]
+00:01.3 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ACPI (rev 01)
+00:02.0 VGA compatible controller: Cirrus Logic GD 5446
+00:03.0 VGA compatible controller: NVIDIA Corporation GK104GL [GRID K520] (rev a1)
+00:1f.0 Unassigned class [ff80]: XenSource, Inc. Xen Platform Device (rev 01)
+awscli==1.8.9
+backports.ssl-match-hostname==3.4.0.2
+boto==2.38.0
+botocore==1.2.7
+chardet==2.2.1
+Cheetah==2.4.4
+cloud-init==0.7.5
+colorama==0.3.3
+configobj==4.7.2
+cycler==0.9.0
+Cython==0.23.4
+decorator==3.4.0
+docutils==0.12
+iniparse==0.4
+IPy==0.75
+javapackages==1.0.0
+jmespath==0.9.0
+jsonpatch==1.2
+jsonpointer==1.9
+kitchen==1.1.1
+lxml==3.2.1
+Markdown==2.4.1
+matplotlib==1.5.0
+networkx==1.10
+numpy==1.10.1
+pandas==0.17.0
+Pillow==2.0.0
+policycoreutils-default-encoding==0.1
+prettytable==0.7.2
+protobuf==2.6.1
+pyasn1==0.1.9
+pycurl==7.19.0
+Pygments==1.4
+pygobject==3.8.2
+pygpgme==0.3
+pyliblzma==0.5.3
+pyparsing==2.0.6
+python-dateutil==2.4.2
+pytz==2015.7
+pyudev==0.15
+pyxattr==0.5.1
+PyYAML==3.10
+requests==2.6.0
+rsa==3.1.1
+scikit-image==0.11.3
+scipy==0.16.1
+seobject==0.1
+sepolicy==1.1
+six==1.9.0
+urlgrabber==3.10
+urllib3==1.10.2
+xlrd==0.9.4
+yum-metadata-parser==1.1.4
+Loaded plugins: fastestmirror
+Installed Packages
+GConf2.x86_64                        3.2.6-8.el7                       @base    
+ImageMagick.x86_64                   6.7.8.9-10.el7                    @base    
+ModemManager-glib.x86_64             1.1.0-6.git20130913.el7           installed
+OpenEXR-libs.x86_64                  1.7.1-7.el7                       @base    
+PyYAML.x86_64                        3.10-11.el7                       installed
+acl.x86_64                           2.2.51-12.el7                     installed
+alsa-lib.x86_64                      1.0.28-2.el7                      @base    
+apr.x86_64                           1.4.8-3.el7                       @base    
+apr-util.x86_64                      1.5.2-6.el7                       @base    
+at-spi2-atk.x86_64                   2.8.1-4.el7                       @base    
+at-spi2-core.x86_64                  2.8.0-6.el7                       @base    
+atk.x86_64                           2.8.0-4.el7                       @base    
+atlas.x86_64                         3.10.1-7.el7                      @base    
+atlas-devel.x86_64                   3.10.1-7.el7                      @base    
+audit.x86_64                         2.4.1-5.el7                       @base    
+audit-libs.x86_64                    2.4.1-5.el7                       installed
+audit-libs-python.x86_64             2.4.1-5.el7                       @base    
+augeas-libs.x86_64                   1.1.0-17.el7                      @base    
+authconfig.x86_64                    6.2.8-9.el7                       @base    
+autoconf.noarch                      2.69-11.el7                       @base    
+autogen-libopts.x86_64               5.18-5.el7                        @base    
+automake.noarch                      1.13.4-3.el7                      @base    
+avahi-libs.x86_64                    0.6.31-14.el7                     @base    
+basesystem.noarch                    10.0-7.el7.centos                 installed
+bash.x86_64                          4.2.46-12.el7                     installed
+bind-libs.x86_64                     32:9.9.4-18.el7_1.5               @updates 
+bind-libs-lite.x86_64                32:9.9.4-18.el7_1.5               @updates 
+bind-license.noarch                  32:9.9.4-18.el7_1.5               @updates 
+bind-utils.x86_64                    32:9.9.4-18.el7_1.5               @updates 
+binutils.x86_64                      2.23.52.0.1-30.el7_1.2            installed
+bison.x86_64                         2.7-4.el7                         @base    
+blas.x86_64                          3.4.2-4.el7                       @base    
+blas-devel.x86_64                    3.4.2-4.el7                       @base    
+boost.x86_64                         1.53.0-23.el7                     @base    
+boost-atomic.x86_64                  1.53.0-23.el7                     @base    
+boost-chrono.x86_64                  1.53.0-23.el7                     @base    
+boost-context.x86_64                 1.53.0-23.el7                     @base    
+boost-date-time.x86_64               1.53.0-23.el7                     @base    
+boost-devel.x86_64                   1.53.0-23.el7                     @base    
+boost-filesystem.x86_64              1.53.0-23.el7                     @base    
+boost-graph.x86_64                   1.53.0-23.el7                     @base    
+boost-iostreams.x86_64               1.53.0-23.el7                     @base    
+boost-locale.x86_64                  1.53.0-23.el7                     @base    
+boost-math.x86_64                    1.53.0-23.el7                     @base    
+boost-program-options.x86_64         1.53.0-23.el7                     @base    
+boost-python.x86_64                  1.53.0-23.el7                     @base    
+boost-random.x86_64                  1.53.0-23.el7                     @base    
+boost-regex.x86_64                   1.53.0-23.el7                     @base    
+boost-serialization.x86_64           1.53.0-23.el7                     @base    
+boost-signals.x86_64                 1.53.0-23.el7                     @base    
+boost-system.x86_64                  1.53.0-23.el7                     @base    
+boost-test.x86_64                    1.53.0-23.el7                     @base    
+boost-thread.x86_64                  1.53.0-23.el7                     @base    
+boost-timer.x86_64                   1.53.0-23.el7                     @base    
+boost-wave.x86_64                    1.53.0-23.el7                     @base    
+btrfs-progs.x86_64                   3.16.2-1.el7                      @base    
+byacc.x86_64                         1.9.20130304-3.el7                @base    
+byobu.noarch                         5.73-4.el7                        @epel    
+bzip2.x86_64                         1.0.6-12.el7                      @base    
+bzip2-libs.x86_64                    1.0.6-12.el7                      installed
+ca-certificates.noarch               2015.2.4-70.0.el7_1               installed
+cairo.x86_64                         1.12.14-6.el7                     @base    
+cairo-gobject.x86_64                 1.12.14-6.el7                     @base    
+cdparanoia-libs.x86_64               10.2-17.el7                       @base    
+centos-logos.noarch                  70.0.6-3.el7.centos               @updates 
+centos-release.x86_64                7-1.1503.el7.centos.2.8           @base    
+checkpolicy.x86_64                   2.1.12-6.el7                      installed
+chkconfig.x86_64                     1.3.61-4.el7                      installed
+chrony.x86_64                        1.29.1-1.el7.centos               installed
+cloud-init.x86_64                    0.7.5-10.el7.centos.1             installed
+cloud-utils-growpart.x86_64          0.27-20.el7.centos                installed
+cmake.x86_64                         2.8.11-4.el7                      @base    
+colord-libs.x86_64                   1.0.4-3.el7                       @base    
+coreutils.x86_64                     8.22-12.el7_1.2                   @updates 
+cpio.x86_64                          2.11-22.el7                       installed
+cpp.x86_64                           4.8.3-9.el7                       @base    
+cracklib.x86_64                      2.9.0-11.el7                      installed
+cracklib-dicts.x86_64                2.9.0-11.el7                      installed
+cronie.x86_64                        1.4.11-13.el7                     installed
+cronie-anacron.x86_64                1.4.11-13.el7                     installed
+crontabs.noarch                      1.11-6.20121102git.el7            installed
+cryptsetup-libs.x86_64               1.6.6-3.el7                       installed
+cscope.x86_64                        15.8-7.el7                        @base    
+ctags.x86_64                         5.8-13.el7                        @base    
+cuda.x86_64                          7.0-28                            installed
+cuda-7-0.x86_64                      7.0-28                            installed
+cuda-command-line-tools-7-0.x86_64   7.0-28                            installed
+cuda-core-7-0.x86_64                 7.0-28                            installed
+cuda-cublas-7-0.x86_64               7.0-28                            installed
+cuda-cublas-dev-7-0.x86_64           7.0-28                            installed
+cuda-cudart-7-0.x86_64               7.0-28                            installed
+cuda-cudart-dev-7-0.x86_64           7.0-28                            installed
+cuda-cufft-7-0.x86_64                7.0-28                            installed
+cuda-cufft-dev-7-0.x86_64            7.0-28                            installed
+cuda-curand-7-0.x86_64               7.0-28                            installed
+cuda-curand-dev-7-0.x86_64           7.0-28                            installed
+cuda-cusolver-7-0.x86_64             7.0-28                            installed
+cuda-cusolver-dev-7-0.x86_64         7.0-28                            installed
+cuda-cusparse-7-0.x86_64             7.0-28                            installed
+cuda-cusparse-dev-7-0.x86_64         7.0-28                            installed
+cuda-documentation-7-0.x86_64        7.0-28                            installed
+cuda-driver-dev-7-0.x86_64           7.0-28                            installed
+cuda-drivers.x86_64                  346.46-0                          installed
+cuda-gdb-src-7-0.x86_64              7.0-28                            installed
+cuda-license-7-0.x86_64              7.0-28                            installed
+cuda-minimal-build-7-0.x86_64        7.0-28                            installed
+cuda-misc-headers-7-0.x86_64         7.0-28                            installed
+cuda-npp-7-0.x86_64                  7.0-28                            installed
+cuda-npp-dev-7-0.x86_64              7.0-28                            installed
+cuda-nvidia-kmod-common.x86_64       346.46-0                          installed
+cuda-nvrtc-7-0.x86_64                7.0-28                            installed
+cuda-nvrtc-dev-7-0.x86_64            7.0-28                            installed
+cuda-repo-rhel7.x86_64               7.0-28                            installed
+cuda-runtime-7-0.x86_64              7.0-28                            installed
+cuda-samples-7-0.x86_64              7.0-28                            installed
+cuda-toolkit-7-0.x86_64              7.0-28                            installed
+cuda-visual-tools-7-0.x86_64         7.0-28                            installed
+cups-libs.x86_64                     1:1.6.3-17.el7_1.1                @updates 
+curl.x86_64                          7.29.0-19.el7                     installed
+cyrus-sasl-lib.x86_64                2.1.26-17.el7                     installed
+dbus.x86_64                          1:1.6.12-11.el7                   @base    
+dbus-glib.x86_64                     0.100-7.el7                       installed
+dbus-libs.x86_64                     1:1.6.12-11.el7                   @base    
+dbus-python.x86_64                   1.1.1-9.el7                       installed
+dejavu-fonts-common.noarch           2.33-6.el7                        @base    
+dejavu-sans-mono-fonts.noarch        2.33-6.el7                        @base    
+desktop-file-utils.x86_64            0.21-4.el7                        @base    
+device-mapper.x86_64                 7:1.02.93-3.el7_1.1               installed
+device-mapper-event.x86_64           7:1.02.93-3.el7_1.1               @updates 
+device-mapper-event-libs.x86_64      7:1.02.93-3.el7_1.1               @updates 
+device-mapper-libs.x86_64            7:1.02.93-3.el7_1.1               installed
+device-mapper-persistent-data.x86_64 0.4.1-2.el7                       @base    
+dhclient.x86_64                      12:4.2.5-36.el7.centos            installed
+dhcp-common.x86_64                   12:4.2.5-36.el7.centos            @base    
+dhcp-libs.x86_64                     12:4.2.5-36.el7.centos            installed
+diffstat.x86_64                      1.57-4.el7                        @base    
+diffutils.x86_64                     3.3-4.el7                         installed
+dkms.noarch                          2.2.0.3-30.git.7c3e7c5.el7        @epel    
+dmidecode.x86_64                     1:2.12-5.el7                      installed
+dnsmasq.x86_64                       2.66-14.el7_1                     @updates 
+docker.x86_64                        1.8.2-7.el7.centos                @extras  
+docker-selinux.x86_64                1.8.2-7.el7.centos                @extras  
+doxygen.x86_64                       1:1.8.5-3.el7                     @base    
+dracut.x86_64                        033-241.el7_1.5                   installed
+dracut-config-generic.x86_64         033-241.el7_1.5                   @updates 
+dracut-config-rescue.x86_64          033-241.el7_1.5                   @updates 
+dracut-network.x86_64                033-241.el7_1.5                   installed
+dwz.x86_64                           0.11-3.el7                        @base    
+dyninst.x86_64                       8.2.0-2.el7                       @base    
+e2fsprogs.x86_64                     1.42.9-7.el7                      @base    
+e2fsprogs-libs.x86_64                1.42.9-7.el7                      installed
+elfutils.x86_64                      0.160-1.el7                       @base    
+elfutils-libelf.x86_64               0.160-1.el7                       installed
+elfutils-libs.x86_64                 0.160-1.el7                       @base    
+emacs.x86_64                         1:24.3-11.el7                     @base    
+emacs-common.x86_64                  1:24.3-11.el7                     @base    
+emacs-filesystem.noarch              1:24.3-11.el7                     @base    
+epel-release.noarch                  7-5                               installed
+ethtool.x86_64                       2:3.15-2.el7                      installed
+expat.x86_64                         2.1.0-8.el7                       installed
+facter.x86_64                        1:2.4.4-1.el7                     @puppetlabs-products
+file.x86_64                          5.11-21.el7                       installed
+file-libs.x86_64                     5.11-21.el7                       installed
+filesystem.x86_64                    3.2-18.el7                        installed
+findutils.x86_64                     1:4.5.11-3.el7                    installed
+fipscheck.x86_64                     1.4.1-5.el7                       installed
+fipscheck-lib.x86_64                 1.4.1-5.el7                       installed
+flex.x86_64                          2.5.37-3.el7                      @base    
+fontconfig.x86_64                    2.10.95-7.el7                     @base    
+fontpackages-filesystem.noarch       1.44-8.el7                        @base    
+freeglut.x86_64                      2.8.1-3.el7                       @base    
+freeglut-devel.x86_64                2.8.1-3.el7                       @base    
+freetype.x86_64                      2.4.11-10.el7_1.1                 installed
+freetype-devel.x86_64                2.4.11-10.el7_1.1                 @updates 
+gawk.x86_64                          4.0.2-4.el7                       installed
+gcc.x86_64                           4.8.3-9.el7                       @base    
+gcc-c++.x86_64                       4.8.3-9.el7                       @base    
+gcc-gfortran.x86_64                  4.8.3-9.el7                       @base    
+gdb.x86_64                           7.6.1-64.el7                      @base    
+gdbm.x86_64                          1.10-8.el7                        installed
+gdk-pixbuf2.x86_64                   2.28.2-5.el7_1                    @updates 
+gettext.x86_64                       0.18.2.1-4.el7                    installed
+gettext-common-devel.noarch          0.18.2.1-4.el7                    @base    
+gettext-devel.x86_64                 0.18.2.1-4.el7                    @base    
+gettext-libs.x86_64                  0.18.2.1-4.el7                    installed
+gflags.x86_64                        2.1.1-6.el7                       @epel    
+gflags-devel.x86_64                  2.1.1-6.el7                       @epel    
+ghostscript.x86_64                   9.07-18.el7                       @base    
+ghostscript-fonts.noarch             5.50-32.el7                       @base    
+giflib.x86_64                        4.1.6-9.el7                       @base    
+git.x86_64                           1.8.3.1-4.el7                     @base    
+gl-manpages.noarch                   1.1-7.20130122.el7                @base    
+glib-networking.x86_64               2.40.0-1.el7                      installed
+glib2.x86_64                         2.40.0-4.el7                      @base    
+glibc.x86_64                         2.17-78.el7                       installed
+glibc-common.x86_64                  2.17-78.el7                       installed
+glibc-devel.x86_64                   2.17-78.el7                       @base    
+glibc-headers.x86_64                 2.17-78.el7                       @base    
+glog.x86_64                          0.3.3-8.el7                       @epel    
+glog-devel.x86_64                    0.3.3-8.el7                       @epel    
+gmp.x86_64                           1:6.0.0-12.el7_1                  @updates 
+gnupg2.x86_64                        2.0.22-3.el7                      installed
+gnutls.x86_64                        3.3.8-12.el7_1.1                  @updates 
+gobject-introspection.x86_64         1.36.0-4.el7                      installed
+gpgme.x86_64                         1.3.2-5.el7                       installed
+gpm-libs.x86_64                      1.20.7-5.el7                      @base    
+gpu-deployment-kit.x86_64            346.46-0                          installed
+graphite2.x86_64                     1.2.2-5.el7                       @base    
+grep.x86_64                          2.20-1.el7                        installed
+groff-base.x86_64                    1.22.2-8.el7                      installed
+grub2.x86_64                         1:2.02-0.17.0.1.el7.centos.4      @updates 
+grub2-tools.x86_64                   1:2.02-0.17.0.1.el7.centos.4      @updates 
+grubby.x86_64                        8.28-11.el7                       @base    
+gsettings-desktop-schemas.x86_64     3.8.2-3.el7                       installed
+gssproxy.x86_64                      0.3.0-10.el7                      @base    
+gstreamer.x86_64                     0.10.36-7.el7                     @base    
+gstreamer-plugins-base.x86_64        0.10.36-10.el7                    @base    
+gstreamer-tools.x86_64               0.10.36-7.el7                     @base    
+gtk2.x86_64                          2.24.22-5.el7_0.1                 @base    
+gtk3.x86_64                          3.8.8-10.el7                      @base    
+gzip.x86_64                          1.5-7.el7                         installed
+hardlink.x86_64                      1:1.0-19.el7                      installed
+harfbuzz.x86_64                      0.9.20-4.el7                      @base    
+hdf5.x86_64                          1.8.12-6.el7                      @epel    
+hdf5-devel.x86_64                    1.8.12-6.el7                      @epel    
+hicolor-icon-theme.noarch            0.12-7.el7                        @base    
+hiera.noarch                         1.3.4-1.el7                       @epel    
+hostname.x86_64                      3.13-3.el7                        installed
+htop.x86_64                          1.0.3-3.el7                       @epel    
+hwdata.x86_64                        0.252-7.8.el7_1                   @updates 
+ilmbase.x86_64                       1.0.3-7.el7                       @base    
+indent.x86_64                        2.2.11-13.el7                     @base    
+info.x86_64                          5.1-4.el7                         installed
+initscripts.x86_64                   9.49.24-1.el7                     @base    
+intltool.noarch                      0.50.2-6.el7                      @base    
+iproute.x86_64                       3.10.0-21.el7                     installed
+iptables.x86_64                      1.4.21-13.el7                     installed
+iputils.x86_64                       20121221-6.el7_1.1                @updates 
+irqbalance.x86_64                    2:1.0.7-2.el7_1                   @updates 
+iso-codes.noarch                     3.46-2.el7                        @base    
+jansson.x86_64                       2.4-6.el7                         installed
+jasper-libs.x86_64                   1.900.1-26.el7_0.3                @base    
+java-1.8.0-openjdk.x86_64            1:1.8.0.65-2.b17.el7_1            @updates 
+java-1.8.0-openjdk-headless.x86_64   1:1.8.0.65-2.b17.el7_1            @updates 
+javapackages-tools.noarch            3.4.1-6.el7_0                     @base    
+jbigkit-libs.x86_64                  2.0-11.el7                        installed
+json-c.x86_64                        0.11-4.el7_0                      installed
+kbd.x86_64                           1.15.5-11.el7                     @base    
+kbd-legacy.noarch                    1.15.5-11.el7                     @base    
+kbd-misc.noarch                      1.15.5-11.el7                     installed
+kernel.x86_64                        3.10.0-123.8.1.el7                installed
+kernel.x86_64                        3.10.0-229.11.1.el7               @updates 
+kernel.x86_64                        3.10.0-229.14.1.el7               @updates 
+kernel.x86_64                        3.10.0-229.20.1.el7               @updates 
+kernel-devel.x86_64                  3.10.0-229.20.1.el7               @updates 
+kernel-headers.x86_64                3.10.0-229.20.1.el7               @updates 
+kernel-tools.x86_64                  3.10.0-229.20.1.el7               @updates 
+kernel-tools-libs.x86_64             3.10.0-229.20.1.el7               @updates 
+kexec-tools.x86_64                   2.0.7-19.el7_1.2                  @updates 
+keyutils.x86_64                      1.5.8-3.el7                       installed
+keyutils-libs.x86_64                 1.5.8-3.el7                       installed
+kmod.x86_64                          14-10.el7                         installed
+kmod-libs.x86_64                     14-10.el7                         installed
+kpartx.x86_64                        0.4.9-77.el7_1.2                  @updates 
+krb5-libs.x86_64                     1.12.2-15.el7_1                   @updates 
+lapack.x86_64                        3.4.2-4.el7                       @base    
+lapack-devel.x86_64                  3.4.2-4.el7                       @base    
+lcms2.x86_64                         2.5-4.el7                         @base    
+less.x86_64                          458-8.el7                         installed
+leveldb.x86_64                       1.12.0-5.el7                      @epel    
+leveldb-devel.x86_64                 1.12.0-5.el7                      @epel    
+libICE.x86_64                        1.0.8-7.el7                       @base    
+libICE-devel.x86_64                  1.0.8-7.el7                       @base    
+libSM.x86_64                         1.2.1-7.el7                       @base    
+libSM-devel.x86_64                   1.2.1-7.el7                       @base    
+libX11.x86_64                        1.6.0-2.1.el7                     @base    
+libX11-common.noarch                 1.6.0-2.1.el7                     @base    
+libX11-devel.x86_64                  1.6.0-2.1.el7                     @base    
+libXau.x86_64                        1.0.8-2.1.el7                     @base    
+libXau-devel.x86_64                  1.0.8-2.1.el7                     @base    
+libXaw.x86_64                        1.0.11-6.1.el7                    @base    
+libXcomposite.x86_64                 0.4.4-4.1.el7                     @base    
+libXcursor.x86_64                    1.1.14-2.1.el7                    @base    
+libXdamage.x86_64                    1.1.4-4.1.el7                     @base    
+libXdamage-devel.x86_64              1.1.4-4.1.el7                     @base    
+libXevie.x86_64                      1.0.3-7.1.el7                     @base    
+libXext.x86_64                       1.3.2-2.1.el7                     @base    
+libXext-devel.x86_64                 1.3.2-2.1.el7                     @base    
+libXfixes.x86_64                     5.0.1-2.1.el7                     @base    
+libXfixes-devel.x86_64               5.0.1-2.1.el7                     @base    
+libXfont.x86_64                      1.4.7-3.el7_1                     @updates 
+libXft.x86_64                        2.3.1-5.1.el7                     @base    
+libXi.x86_64                         1.7.2-2.1.el7                     @base    
+libXi-devel.x86_64                   1.7.2-2.1.el7                     @base    
+libXinerama.x86_64                   1.1.3-2.1.el7                     @base    
+libXmu.x86_64                        1.1.1-5.1.el7                     @base    
+libXmu-devel.x86_64                  1.1.1-5.1.el7                     @base    
+libXpm.x86_64                        3.5.10-5.1.el7                    @base    
+libXrandr.x86_64                     1.4.1-2.1.el7                     @base    
+libXrender.x86_64                    0.9.8-2.1.el7                     @base    
+libXt.x86_64                         1.1.4-6.1.el7                     @base    
+libXt-devel.x86_64                   1.1.4-6.1.el7                     @base    
+libXtst.x86_64                       1.2.2-2.1.el7                     @base    
+libXv.x86_64                         1.0.9-2.1.el7                     @base    
+libXxf86vm.x86_64                    1.1.3-2.1.el7                     @base    
+libXxf86vm-devel.x86_64              1.1.3-2.1.el7                     @base    
+libacl.x86_64                        2.2.51-12.el7                     installed
+libaio.x86_64                        0.3.109-12.el7                    @base    
+libarchive.x86_64                    3.1.2-7.el7                       @base    
+libassuan.x86_64                     2.1.0-3.el7                       installed
+libattr.x86_64                       2.4.46-12.el7                     installed
+libbasicobjects.x86_64               0.1.1-24.el7                      installed
+libblkid.x86_64                      2.23.2-22.el7_1.1                 installed
+libcap.x86_64                        2.22-8.el7                        installed
+libcap-ng.x86_64                     0.7.3-5.el7                       installed
+libcgroup.x86_64                     0.41-8.el7                        @base    
+libcollection.x86_64                 0.6.2-24.el7                      installed
+libcom_err.x86_64                    1.42.9-7.el7                      @base    
+libcroco.x86_64                      0.6.8-5.el7                       installed
+libcurl.x86_64                       7.29.0-19.el7                     installed
+libdaemon.x86_64                     0.14-7.el7                        installed
+libdb.x86_64                         5.3.21-17.el7_0.1                 installed
+libdb-utils.x86_64                   5.3.21-17.el7_0.1                 installed
+libdrm.x86_64                        2.4.56-2.el7                      @base    
+libdrm-devel.x86_64                  2.4.56-2.el7                      @base    
+libdwarf.x86_64                      20130207-4.el7                    @base    
+libedit.x86_64                       3.0-12.20121213cvs.el7            installed
+libestr.x86_64                       0.1.9-2.el7                       installed
+libevent.x86_64                      2.0.21-4.el7                      installed
+libffi.x86_64                        3.0.13-11.el7                     installed
+libfontenc.x86_64                    1.1.1-5.el7                       @base    
+libgcc.x86_64                        4.8.3-9.el7                       installed
+libgcrypt.x86_64                     1.5.3-12.el7_1.1                  installed
+libgfortran.x86_64                   4.8.3-9.el7                       @base    
+libgnome-keyring.x86_64              3.8.0-3.el7                       @base    
+libgomp.x86_64                       4.8.3-9.el7                       @base    
+libgpg-error.x86_64                  1.12-3.el7                        installed
+libgudev1.x86_64                     208-20.el7_1.6                    @updates 
+libgusb.x86_64                       0.1.6-3.el7                       @base    
+libicu.x86_64                        50.1.2-11.el7                     @base    
+libidn.x86_64                        1.28-3.el7                        installed
+libini_config.x86_64                 1.1.0-24.el7                      installed
+libjpeg-turbo.x86_64                 1.2.90-5.el7                      installed
+liblockfile.x86_64                   1.08-17.el7                       @base    
+libmnl.x86_64                        1.0.3-7.el7                       installed
+libmodman.x86_64                     2.0.1-8.el7                       installed
+libmount.x86_64                      2.23.2-22.el7_1.1                 installed
+libmpc.x86_64                        1.0.1-3.el7                       @base    
+libndp.x86_64                        1.2-4.el7                         installed
+libnetfilter_conntrack.x86_64        1.0.4-2.el7                       installed
+libnfnetlink.x86_64                  1.0.1-4.el7                       installed
+libnfsidmap.x86_64                   0.25-11.el7                       installed
+libnl3.x86_64                        3.2.21-9.el7_1                    @updates 
+libnl3-cli.x86_64                    3.2.21-9.el7_1                    @updates 
+libogg.x86_64                        2:1.3.0-7.el7                     @base    
+libotf.x86_64                        0.9.13-4.el7                      @base    
+libpath_utils.x86_64                 0.2.1-24.el7                      @base    
+libpcap.x86_64                       14:1.5.3-4.el7_1.2                @updates 
+libpciaccess.x86_64                  0.13.1-4.1.el7                    @base    
+libpipeline.x86_64                   1.2.3-3.el7                       installed
+libpng.x86_64                        2:1.5.13-5.el7                    @base    
+libpng-devel.x86_64                  2:1.5.13-5.el7                    @base    
+libproxy.x86_64                      0.4.11-6.el7                      installed
+libpwquality.x86_64                  1.2.3-4.el7                       installed
+libquadmath.x86_64                   4.8.3-9.el7                       @base    
+libquadmath-devel.x86_64             4.8.3-9.el7                       @base    
+libref_array.x86_64                  0.1.4-24.el7                      @base    
+librsvg2.x86_64                      2.39.0-1.el7                      @base    
+libselinux.x86_64                    2.2.2-6.el7                       installed
+libselinux-python.x86_64             2.2.2-6.el7                       installed
+libselinux-ruby.x86_64               2.2.2-6.el7                       @base    
+libselinux-utils.x86_64              2.2.2-6.el7                       installed
+libsemanage.x86_64                   2.1.10-16.el7                     installed
+libsemanage-python.x86_64            2.1.10-16.el7                     installed
+libsepol.x86_64                      2.1.9-3.el7                       installed
+libsoup.x86_64                       2.46.0-3.el7                      @base    
+libss.x86_64                         1.42.9-7.el7                      @base    
+libssh2.x86_64                       1.4.3-8.el7                       installed
+libstdc++.x86_64                     4.8.3-9.el7                       @base    
+libstdc++-devel.x86_64               4.8.3-9.el7                       @base    
+libtalloc.x86_64                     2.1.1-1.el7                       installed
+libtasn1.x86_64                      3.8-2.el7                         installed
+libteam.x86_64                       1.15-1.el7                        installed
+libtevent.x86_64                     0.9.21-3.el7                      @base    
+libthai.x86_64                       0.1.14-9.el7                      @base    
+libtheora.x86_64                     1:1.1.1-8.el7                     @base    
+libtiff.x86_64                       4.0.3-14.el7                      installed
+libtirpc.x86_64                      0.2.4-0.5.el7                     @base    
+libtool.x86_64                       2.4.2-20.el7                      @base    
+libtool-ltdl.x86_64                  2.4.2-20.el7                      @base    
+libunistring.x86_64                  0.9.3-9.el7                       installed
+libusbx.x86_64                       1.0.15-4.el7                      @base    
+libuser.x86_64                       0.60-7.el7_1                      @updates 
+libutempter.x86_64                   1.1.6-4.el7                       installed
+libuuid.x86_64                       2.23.2-22.el7_1.1                 installed
+libv4l.x86_64                        0.9.5-4.el7                       @base    
+libvdpau.x86_64                      0.9-1.el7                         @epel    
+libverto.x86_64                      0.2.5-4.el7                       installed
+libverto-tevent.x86_64               0.2.5-4.el7                       @base    
+libvisual.x86_64                     0.4.0-16.el7                      @base    
+libvorbis.x86_64                     1:1.3.3-8.el7                     @base    
+libwebp.x86_64                       0.3.0-3.el7                       installed
+libwmf-lite.x86_64                   0.2.8.4-41.el7_1                  @updates 
+libxcb.x86_64                        1.9-5.el7                         @base    
+libxcb-devel.x86_64                  1.9-5.el7                         @base    
+libxml2.x86_64                       2.9.1-5.el7_1.2                   installed
+libxslt.x86_64                       1.1.28-5.el7                      @base    
+libyaml.x86_64                       0.1.4-11.el7_0                    @base    
+linux-firmware.noarch                20140911-0.1.git365e80c.el7       @base    
+lmdb.x86_64                          0.9.13-2.el7                      @epel    
+lmdb-devel.x86_64                    0.9.13-2.el7                      @epel    
+lmdb-libs.x86_64                     0.9.13-2.el7                      @epel    
+logrotate.x86_64                     3.8.6-4.el7                       installed
+lua.x86_64                           5.1.4-14.el7                      installed
+lvm2.x86_64                          7:2.02.115-3.el7_1.1              @updates 
+lvm2-libs.x86_64                     7:2.02.115-3.el7_1.1              @updates 
+lzo.x86_64                           2.06-6.el7_0.2                    installed
+m17n-db.noarch                       1.6.4-3.el7                       @base    
+m17n-lib.x86_64                      1.6.4-10.el7                      @base    
+m4.x86_64                            1.4.16-9.el7                      @base    
+make.x86_64                          1:3.82-21.el7                     installed
+man-db.x86_64                        2.6.3-9.el7                       installed
+mariadb-libs.x86_64                  1:5.5.44-1.el7_1                  @updates 
+mesa-libEGL.x86_64                   10.2.7-5.20140910.el7_1.1         @updates 
+mesa-libGL.x86_64                    10.2.7-5.20140910.el7_1.1         @updates 
+mesa-libGL-devel.x86_64              10.2.7-5.20140910.el7_1.1         @updates 
+mesa-libGLU.x86_64                   9.0.0-4.el7                       @base    
+mesa-libGLU-devel.x86_64             9.0.0-4.el7                       @base    
+mesa-libgbm.x86_64                   10.2.7-5.20140910.el7_1.1         @updates 
+mesa-libglapi.x86_64                 10.2.7-5.20140910.el7_1.1         @updates 
+microcode_ctl.x86_64                 2:2.1-10.el7                      @base    
+mlocate.x86_64                       0.26-5.el7                        @base    
+mokutil.x86_64                       0.7-5.el7                         @base    
+mozjs17.x86_64                       17.0.0-10.el7                     installed
+mpfr.x86_64                          3.1.1-4.el7                       @base    
+ncurses.x86_64                       5.9-13.20130511.el7               installed
+ncurses-base.noarch                  5.9-13.20130511.el7               installed
+ncurses-libs.x86_64                  5.9-13.20130511.el7               installed
+neon.x86_64                          0.30.0-3.el7                      @base    
+net-tools.x86_64                     2.0-0.17.20131004git.el7          installed
+nettle.x86_64                        2.7.1-4.el7                       installed
+newt.x86_64                          0.52.15-4.el7                     installed
+newt-python.x86_64                   0.52.15-4.el7                     installed
+nfs-utils.x86_64                     1:1.3.0-0.8.el7                   @base    
+nspr.x86_64                          4.10.8-2.el7_1                    @updates 
+nss.x86_64                           3.19.1-7.el7_1.2                  @updates 
+nss-softokn.x86_64                   3.16.2.3-13.el7_1                 @updates 
+nss-softokn-freebl.x86_64            3.16.2.3-13.el7_1                 @updates 
+nss-sysinit.x86_64                   3.19.1-7.el7_1.2                  @updates 
+nss-tools.x86_64                     3.19.1-7.el7_1.2                  @updates 
+nss-util.x86_64                      3.19.1-4.el7_1                    @updates 
+ntp.x86_64                           4.2.6p5-19.el7.centos.3           @updates 
+ntpdate.x86_64                       4.2.6p5-19.el7.centos.3           @updates 
+numactl-libs.x86_64                  2.0.9-5.el7_1                     installed
+nvidia-kmod.x86_64                   1:346.46-2.el7                    installed
+nvidia-uvm-kmod.x86_64               1:346.46-3.el7                    installed
+opencv.x86_64                        2.4.5-3.el7                       @base    
+opencv-core.x86_64                   2.4.5-3.el7                       @base    
+opencv-devel.x86_64                  2.4.5-3.el7                       @base    
+openldap.x86_64                      2.4.39-7.el7.centos               @updates 
+openssh.x86_64                       6.6.1p1-12.el7_1                  installed
+openssh-clients.x86_64               6.6.1p1-12.el7_1                  @updates 
+openssh-server.x86_64                6.6.1p1-12.el7_1                  @updates 
+openssl.x86_64                       1:1.0.1e-42.el7.9                 @updates 
+openssl-libs.x86_64                  1:1.0.1e-42.el7.9                 installed
+orc.x86_64                           0.4.17-5.el7                      @base    
+os-prober.x86_64                     1.58-5.el7                        installed
+p11-kit.x86_64                       0.20.7-3.el7                      installed
+p11-kit-trust.x86_64                 0.20.7-3.el7                      installed
+pakchois.x86_64                      0.4-10.el7                        @base    
+pam.x86_64                           1.1.8-12.el7_1.1                  @updates 
+pango.x86_64                         1.34.1-5.el7                      @base    
+parted.x86_64                        3.1-20.el7                        @base    
+passwd.x86_64                        0.79-4.el7                        installed
+patch.x86_64                         2.7.1-8.el7                       @base    
+patchutils.x86_64                    0.3.3-4.el7                       @base    
+pciutils.x86_64                      3.2.1-4.el7                       @base    
+pciutils-libs.x86_64                 3.2.1-4.el7                       installed
+pcre.x86_64                          8.32-14.el7                       @base    
+perl.x86_64                          4:5.16.3-285.el7                  @base    
+perl-Carp.noarch                     1.26-244.el7                      @base    
+perl-Data-Dumper.x86_64              2.145-3.el7                       @base    
+perl-Encode.x86_64                   2.51-7.el7                        @base    
+perl-Error.noarch                    1:0.17020-2.el7                   @base    
+perl-Exporter.noarch                 5.68-3.el7                        @base    
+perl-File-Path.noarch                2.09-2.el7                        @base    
+perl-File-Temp.noarch                0.23.01-3.el7                     @base    
+perl-Filter.x86_64                   1.49-3.el7                        @base    
+perl-Getopt-Long.noarch              2.40-2.el7                        @base    
+perl-Git.noarch                      1.8.3.1-4.el7                     @base    
+perl-HTTP-Tiny.noarch                0.033-3.el7                       @base    
+perl-PathTools.x86_64                3.40-5.el7                        @base    
+perl-Pod-Escapes.noarch              1:1.04-285.el7                    @base    
+perl-Pod-Perldoc.noarch              3.20-4.el7                        @base    
+perl-Pod-Simple.noarch               1:3.28-4.el7                      @base    
+perl-Pod-Usage.noarch                1.63-3.el7                        @base    
+perl-Scalar-List-Utils.x86_64        1.27-248.el7                      @base    
+perl-Socket.x86_64                   2.010-3.el7                       @base    
+perl-Storable.x86_64                 2.45-3.el7                        @base    
+perl-TermReadKey.x86_64              2.30-20.el7                       @base    
+perl-Test-Harness.noarch             3.28-2.el7                        @base    
+perl-Text-ParseWords.noarch          3.29-4.el7                        @base    
+perl-Thread-Queue.noarch             3.02-2.el7                        @base    
+perl-Time-HiRes.x86_64               4:1.9725-3.el7                    @base    
+perl-Time-Local.noarch               1.2300-2.el7                      @base    
+perl-XML-Parser.x86_64               2.41-10.el7                       @base    
+perl-constant.noarch                 1.27-2.el7                        @base    
+perl-libs.x86_64                     4:5.16.3-285.el7                  @base    
+perl-macros.x86_64                   4:5.16.3-285.el7                  @base    
+perl-parent.noarch                   1:0.225-244.el7                   @base    
+perl-podlators.noarch                2.5.1-3.el7                       @base    
+perl-srpm-macros.noarch              1-8.el7                           @base    
+perl-threads.x86_64                  1.87-4.el7                        @base    
+perl-threads-shared.x86_64           1.43-6.el7                        @base    
+pinentry.x86_64                      0.8.1-14.el7                      installed
+pixman.x86_64                        0.32.4-3.el7                      @base    
+pkgconfig.x86_64                     1:0.27.1-4.el7                    installed
+policycoreutils.x86_64               2.2.5-15.el7                      installed
+policycoreutils-python.x86_64        2.2.5-15.el7                      @base    
+polkit.x86_64                        0.112-5.el7                       installed
+polkit-pkla-compat.x86_64            0.1-4.el7                         installed
+poppler-data.noarch                  0.4.6-3.el7                       @base    
+popt.x86_64                          1.13-16.el7                       installed
+postfix.x86_64                       2:2.10.1-6.el7                    installed
+ppp.x86_64                           2.4.5-33.el7                      installed
+procps-ng.x86_64                     3.3.10-3.el7                      @base    
+protobuf.x86_64                      2.5.0-7.el7                       @epel    
+protobuf-compiler.x86_64             2.5.0-7.el7                       @epel    
+protobuf-devel.x86_64                2.5.0-7.el7                       @epel    
+psmisc.x86_64                        22.20-8.el7                       @base    
+pth.x86_64                           2.0.7-22.el7                      installed
+puppet.noarch                        3.8.4-1.el7                       @puppetlabs-products
+puppetlabs-release.noarch            7-11                              installed
+pygobject3-base.x86_64               3.8.2-6.el7                       installed
+pygpgme.x86_64                       0.3-9.el7                         installed
+pyliblzma.x86_64                     0.5.3-11.el7                      installed
+python.x86_64                        2.7.5-18.el7_1.1                  installed
+python-IPy.noarch                    0.75-6.el7                        installed
+python-backports.x86_64              1.0-8.el7                         @base    
+python-backports-ssl_match_hostname.noarch
+                                     3.4.0.2-4.el7                     installed
+python-boto.noarch                   2.38.0-2.el7                      @epel    
+python-chardet.noarch                2.2.1-1.el7_1                     installed
+python-cheetah.x86_64                2.4.4-5.el7.centos                installed
+python-configobj.noarch              4.7.2-7.el7                       installed
+python-decorator.noarch              3.4.0-3.el7                       installed
+python-devel.x86_64                  2.7.5-18.el7_1.1                  @updates 
+python-iniparse.noarch               0.4-9.el7                         installed
+python-javapackages.noarch           3.4.1-6.el7_0                     @base    
+python-jsonpatch.noarch              1.2-3.el7.centos                  installed
+python-jsonpointer.noarch            1.9-2.el7                         @epel    
+python-kitchen.noarch                1.1.1-5.el7                       installed
+python-libs.x86_64                   2.7.5-18.el7_1.1                  @updates 
+python-lxml.x86_64                   3.2.1-4.el7                       @base    
+python-markdown.noarch               2.4.1-1.el7.centos                installed
+python-pillow.x86_64                 2.0.0-17.gitd1c6db8.el7           installed
+python-pip.noarch                    7.1.0-1.el7                       @epel    
+python-prettytable.noarch            0.7.2-2.el7.centos                installed
+python-pycurl.x86_64                 7.19.0-17.el7                     installed
+python-pygments.noarch               1.4-9.el7                         installed
+python-pyudev.noarch                 0.15-6.el7                        installed
+python-requests.noarch               2.6.0-1.el7_1                     installed
+python-rsa.noarch                    3.1.1-5.el7                       @epel    
+python-setuptools.noarch             0.9.8-3.el7                       installed
+python-six.noarch                    1.3.0-4.el7                       installed
+python-urlgrabber.noarch             3.10-6.el7                        installed
+python-urllib3.noarch                1.10.2-2.el7_1                    installed
+pyxattr.x86_64                       0.5.1-5.el7                       installed
+qrencode-libs.x86_64                 3.4.1-3.el7                       installed
+quota.x86_64                         1:4.01-11.el7                     installed
+quota-nls.noarch                     1:4.01-11.el7                     installed
+rcs.x86_64                           5.9.0-5.el7                       @base    
+readline.x86_64                      6.2-9.el7                         installed
+redhat-rpm-config.noarch             9.1.0-68.el7.centos               @base    
+rootfiles.noarch                     8.1-11.el7                        installed
+rpcbind.x86_64                       0.2.0-26.el7                      @base    
+rpm.x86_64                           4.11.1-25.el7                     installed
+rpm-build.x86_64                     4.11.1-25.el7                     @base    
+rpm-build-libs.x86_64                4.11.1-25.el7                     installed
+rpm-libs.x86_64                      4.11.1-25.el7                     installed
+rpm-python.x86_64                    4.11.1-25.el7                     installed
+rpm-sign.x86_64                      4.11.1-25.el7                     @base    
+rpmforge-release.x86_64              0.5.3-1.el7.rf                    installed
+rsync.x86_64                         3.0.9-15.el7                      installed
+rsyslog.x86_64                       7.4.7-7.el7_1.1                   @updates 
+ruby.x86_64                          2.0.0.598-25.el7_1                @updates 
+ruby-augeas.x86_64                   0.5.0-1.el7                       @epel    
+ruby-irb.noarch                      2.0.0.598-25.el7_1                @updates 
+ruby-libs.x86_64                     2.0.0.598-25.el7_1                @updates 
+ruby-shadow.x86_64                   1:2.2.0-2.el7                     @puppetlabs-deps
+rubygem-bigdecimal.x86_64            1.2.0-25.el7_1                    @updates 
+rubygem-io-console.x86_64            0.4.2-25.el7_1                    @updates 
+rubygem-json.x86_64                  1.7.7-25.el7_1                    @updates 
+rubygem-psych.x86_64                 2.0.0-25.el7_1                    @updates 
+rubygem-rdoc.noarch                  4.0.0-25.el7_1                    @updates 
+rubygems.noarch                      2.0.14-25.el7_1                   @updates 
+screen.x86_64                        4.1.0-0.19.20120314git3c2946.el7  @base    
+scrub.x86_64                         2.5.2-5.el7                       @base    
+sed.x86_64                           4.2.2-5.el7                       installed
+selinux-policy.noarch                3.13.1-23.el7_1.21                @updates 
+selinux-policy-targeted.noarch       3.13.1-23.el7_1.21                @updates 
+setools-libs.x86_64                  3.3.7-46.el7                      installed
+setup.noarch                         2.8.71-5.el7                      installed
+shadow-utils.x86_64                  2:4.1.5.1-18.el7                  @base    
+shared-mime-info.x86_64              1.1-7.el7                         installed
+slang.x86_64                         2.2.4-11.el7                      installed
+snappy.x86_64                        1.1.0-3.el7                       installed
+snappy-devel.x86_64                  1.1.0-3.el7                       @base    
+sqlite.x86_64                        3.7.17-6.el7_1.1                  @updates 
+subversion.x86_64                    1.7.14-7.el7_1.1                  @updates 
+subversion-libs.x86_64               1.7.14-7.el7_1.1                  @updates 
+sudo.x86_64                          1.8.6p7-13.el7                    @base    
+swig.x86_64                          2.0.10-4.el7                      @base    
+systemd.x86_64                       208-20.el7_1.6                    @updates 
+systemd-libs.x86_64                  208-20.el7_1.6                    @updates 
+systemd-sysv.x86_64                  208-20.el7_1.6                    @updates 
+systemtap.x86_64                     2.6-10.el7_1                      @updates 
+systemtap-client.x86_64              2.6-10.el7_1                      @updates 
+systemtap-devel.x86_64               2.6-10.el7_1                      @updates 
+systemtap-runtime.x86_64             2.6-10.el7_1                      @updates 
+sysvinit-tools.x86_64                2.88-14.dsf.el7                   installed
+tar.x86_64                           2:1.26-29.el7                     installed
+tcp_wrappers.x86_64                  7.6-77.el7                        installed
+tcp_wrappers-libs.x86_64             7.6-77.el7                        installed
+teamd.x86_64                         1.15-1.el7                        @base    
+tmux.x86_64                          1.8-4.el7                         @base    
+tree.x86_64                          1.6.0-10.el7                      @base    
+trousers.x86_64                      0.3.11.2-4.el7_1                  @updates 
+ttmkfdir.x86_64                      3.0.9-41.el7                      @base    
+tuned.noarch                         2.4.1-1.el7                       @base    
+tzdata.noarch                        2015g-1.el7                       @updates 
+tzdata-java.noarch                   2015g-1.el7                       @updates 
+unzip.x86_64                         6.0-15.el7                        @updates 
+urw-fonts.noarch                     2.4-16.el7                        @base    
+ustr.x86_64                          1.0.4-16.el7                      installed
+util-linux.x86_64                    2.23.2-22.el7_1.1                 installed
+vim-common.x86_64                    2:7.4.160-1.el7                   @base    
+vim-enhanced.x86_64                  2:7.4.160-1.el7                   @base    
+vim-filesystem.x86_64                2:7.4.160-1.el7                   @base    
+vim-minimal.x86_64                   2:7.4.160-1.el7                   installed
+virt-what.x86_64                     1.13-5.el7                        installed
+wget.x86_64                          1.14-10.el7_0.1                   @base    
+which.x86_64                         2.20-7.el7                        installed
+wpa_supplicant.x86_64                1:2.0-17.el7_1                    @updates 
+xfsprogs.x86_64                      3.2.1-6.el7                       @base    
+xml-common.noarch                    0.6.3-39.el7                      @base    
+xorg-x11-drv-nvidia.x86_64           1:346.46-1.el7                    installed
+xorg-x11-drv-nvidia-devel.x86_64     1:346.46-1.el7                    installed
+xorg-x11-drv-nvidia-gl.x86_64        1:346.46-1.el7                    installed
+xorg-x11-drv-nvidia-libs.x86_64      1:346.46-1.el7                    installed
+xorg-x11-font-utils.x86_64           1:7.5-18.1.el7                    @base    
+xorg-x11-fonts-Type1.noarch          7.5-9.el7                         @base    
+xorg-x11-proto-devel.noarch          7.7-8.el7.1                       @base    
+xz.x86_64                            5.1.2-9alpha.el7                  installed
+xz-libs.x86_64                       5.1.2-9alpha.el7                  @base    
+yum.noarch                           3.4.3-125.el7.centos              @base    
+yum-cron.noarch                      3.4.3-125.el7.centos              @base    
+yum-metadata-parser.x86_64           1.1.4-10.el7                      installed
+yum-plugin-fastestmirror.noarch      1.1.31-29.el7                     installed
+yum-utils.noarch                     1.1.31-29.el7                     @base    
+zip.x86_64                           3.0-10.el7                        @base    
+zlib.x86_64                          1.2.7-13.el7                      installed
+zlib-devel.x86_64                    1.2.7-13.el7                      @base    
