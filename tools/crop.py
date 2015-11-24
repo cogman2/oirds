@@ -35,9 +35,29 @@ def main():
 
     # Find the names of images with a second target.
     multiples = total[total.iloc[:,2]==2].iloc[:,1]
+    # Limit the ratio of vehicle to no-vehicle chips.
+    limit = len(total.iloc[:,2]) - len(multiples)
+    counter = 0
+
+    if os.path.isdir('/data/oirds/crop'):
+        for root, dirs, files in os.walk('/data/oirds/crop', topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+            os.rmdir(root)
+
+    if os.path.isdir('/data/oirds/no_car_crop'):
+        for root, dirs, files in os.walk('/data/oirds/no_car_crop', topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+            os.rmdir(root)
 
     os.mkdir('/data/oirds/crop')
     os.mkdir('/data/oirds/no_car_crop')
+
     with open('/data/oirds/train'+str(chip_size)+'.txt', 'w+') as train:
         with open('/data/oirds/val'+str(chip_size)+'.txt', 'w+') as test:
             # Crop around each object.
@@ -71,7 +91,7 @@ def main():
                 im2 = im1.crop((l,u,r,low))
                 uid = total.iloc[i,1][:-4]+str(total.iloc[i,2])+'_'+str(chip_size)
                 fname = '/data/oirds/crop/'+uid+'c.png'
-                im2.save(fname)
+                im2.save('/data/oirds/'fname)
                 if i % 5 == 0:
                     test.write(fname+' 1\n')
                 else:
@@ -83,8 +103,7 @@ def main():
                 # im3.save('/data/oirds/rotate/'+uid+' '+spin+'.png')
                 
                 # Tile the single-object images with "no car" chips.
-                if total.iloc[i,1] not in multiples:
-                    counter = 0
+                if total.iloc[i,1] not in multiples and counter < limit:
                     # Tile to the right.
                     # x
                     for j in range((w-ctr_x-half_chip)/chip_size):
@@ -97,8 +116,8 @@ def main():
                             im3 = im1.crop((left, upper, right, lower))
                             code = j*h/chip_size+k
                             uid = total.iloc[i,1][:-4]+str(code)+'_'+str(chip_size)
-                            fname = '/data/oirds/no_car_crop/'+uid+'R.png'
-                            im3.save(fname)
+                            fname = 'no_car_crop/'+uid+'R.png'
+                            im3.save('/data/oirds/'+fname)
                             if counter % 5 == 0:
                                 test.write(fname+' 0\n')
                             else:
@@ -116,8 +135,8 @@ def main():
                             im3 = im1.crop((left, upper, right, lower))
                             code = m*h/chip_size+n
                             uid = total.iloc[i,1][:-4]+str(code)+'_'+str(chip_size)
-                            fname = '/data/oirds/no_car_crop/'+uid+'L.png'
-                            im3.save(fname)
+                            fname = 'no_car_crop/'+uid+'L.png'
+                            im3.save('/data/oirds/'+fname)
                             if counter % 5 == 0:
                                 test.write(fname+' 0\n')
                             else:
