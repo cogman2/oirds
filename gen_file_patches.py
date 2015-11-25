@@ -7,6 +7,22 @@ import os
 import pandas as pd
 import random
 import sys
+import img_manip
+from PIL import Image
+
+def get_xls_dataframe( xlsFiles, cols ):
+    xlsInfo = pd.DataFrame()
+    for xlsFile in xlsFiles:
+        xlsInfo = xlsInfo.append( pd.read_excel( io=xlsFile, parse_cols=cols, ignore_index=True ) )
+    return xlsInfo
+
+def get_output_filename( filename, label_idx, angle_deg ):
+    output_filename = filename[:-4]+"_"+label_idx
+    if angle_deg > 0:
+        output_filename += output_filename + "_angle_" + angle_deg
+        
+    output_filename += filename[-4:]
+    return output_filename
 
 if len(sys.argv) < 2:
     print "Usage: ", sys.argv[0], " dataDir"
@@ -22,17 +38,19 @@ xlsFiles = list( itertools.chain( *[ glob.glob( x + "/*.xls" ) for x in dataDirs
 imagePathIndex = 'Image Path'
 imageNameIndex = 'Image Name'
 modeIndex = 'Mode of Target Type'
+centroidIndex = 'Average Target Centroid'
 # 1, 2, 3 = "Image Path", "Image Name", "Target Number"
 # 7, 8 = "Intersection Polygon", "Average Target Centroid"
 # 9, 15 = "Mode of Target Type", "Average Target Orientation"
 
-cols = [1,2,9]
-xlsInfo = pd.DataFrame()
-for xlsFile in xlsFiles:
-    xlsInfo = xlsInfo.append( pd.read_excel( io=xlsFile, parse_cols=cols, ignore_index=True ) )
+cols = [1,2,8,9]
+xlsInfo = get_xls_dataframe( xlsFiles, cols )
 
 modes = [ str(x) for x in set(xlsInfo['Mode of Target Type']) ]
 modeIndices = dict( zip( modes, [str(x) for x in range( len(modes) )] ) )
+
+#for i in xrange( len(xlsInfo) ):
+#    img = 
 
 files = set([ parentDataDir +
               os.path.basename(xlsInfo.iloc[i][imagePathIndex]) + "/" +
