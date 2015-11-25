@@ -1,5 +1,0 @@
-#GSD correction/normalization
-#rotation (15 deg - 180)
-#shadow values <.1
-#avoid edges (for rotation)
-#polygons - patch size (maximal)
