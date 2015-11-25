@@ -9,21 +9,14 @@ label_colors = [(64,128,64),(192,0,128),(0,128,192),(0,128,64),(128,0,0)]
 
 def main():
     import os
-    from PIL import Image
     import pandas as pd
     import itertools
     import glob
     import sys
-    from PIL import Image
-    if sys.version_info[0] < 3:
-        from StringIO import StringIO
-    else:
-        from io import StringIO
 
     if len(sys.argv) < 2:
       print "Usage: ", sys.argv[0], " dataDir"
       sys.exit( 0 )
-
 
     parentDataDir = sys.argv[1]
     if parentDataDir[-1] != '/':
@@ -99,9 +92,9 @@ def labelImage(img, poly, color):
         img.putpixel((x, y), color)
 
 def outGT (xlsInfo, line, namesIdx, out_txn ):
+   import caffe
    imageFile = line.split()[0]
    imageLabel = int(line.split()[1])
-   xlsRow = xlsInfo.iloc[names(os.path.basename(path)),:]
    imRaw = Image.open(imageFile) # or load whatever ndarray you need
    im = np.array(imRaw)
    # convert to one dimensional ground truth labels
