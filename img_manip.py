@@ -35,3 +35,6 @@ def crop_rotate( img, pos, dims, angle ):
     center = tuple([x//2 for x in img.size])
     rot_pos = rot_img_vec( pos, angle, center )
     return crop( rot_img, rot_pos, dims )
+
+def open( filename ):
+    return Image.open( filename )
