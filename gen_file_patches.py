@@ -112,3 +112,10 @@ def processAllXlsFiles( parentDataDir ):
     for xlsFile in xlsFiles:
         processXls( xlsFile, parentDataDir )
     write_files( 0.8 )
+
+if __name__ == "__main__":
+    if len( sys.argv ) < 2:
+        print "Usage: ", sys.argv[0], " OIRDS_dir"
+        sys.exit(0)
+    processAllXlsFiles( sys.argv[1] )
+
