@@ -35,7 +35,7 @@ modes = [ str(x) for x in set(xlsInfo['Mode of Target Type']) ]
 modeIndices = dict( zip( modes, [str(x) for x in range( len(modes) )] ) )
 
 files = set([ parentDataDir +
-              os.path.basename(xlsInfo.iloc[i][imagePathIndex]) + "/" +
+              xlsInfo.iloc[i][imagePathIndex][3:] + "/" +
               xlsInfo.iloc[i][imageNameIndex]     + " " +
               modeIndices[xlsInfo.iloc[i][modeIndex]]
               for i in range(len(xlsInfo)) ])
