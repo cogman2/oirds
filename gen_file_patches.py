@@ -49,7 +49,7 @@ def get_xls_dataframe( xlsFiles, colIndices ):
 def get_output_filename( filename, label_idx, angle_deg ):
     output_filename = filename[:-4]+"_"+label_idx
     if angle_deg > 0:
-        output_filename += output_filename + "_angle_" + angle_deg
+        output_filename += "_angle_" + str(angle_deg)
         
     output_filename += filename[-4:]
     return output_filename
@@ -102,6 +102,17 @@ def processXls( filename, parentDataDir ):
         cropped_img.save( output_file_name )
 
         files.append( output_file_name + " " + mode_index )
+
+        # loop through angles
+        for i in xrange(1,7):
+            angle = 30*i
+            centroid = boundary_fixed_centroid( centroid, img_size )
+            cropped_img = img_manip.crop_rotate( img, centroid, defaultDim, angle )
+            mode_index = mode_indices[mode]
+            output_file_name = get_output_filename( filename, mode_index, angle )
+            cropped_img.save( output_file_name )
+            files.append( output_file_name + " " + mode_index )
+            
 
 
 def processAllXlsFiles( parentDataDir ):

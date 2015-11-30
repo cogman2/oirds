@@ -31,6 +31,18 @@ def rot_img_vec( vec, angle_deg, center=(0,0) ):
     return numpy.inner( m, np_vec_prime ) + np_center
 
 def crop_rotate( img, pos, dims, angle ):
+    '''Crop an image given a centroid and rotation
+
+    Args:
+       img: original unrotated image
+       pos: unrotated centroid around which to crop
+       dims: (x,y) full-width dimensions of the crop
+       angle: angle at which to rotate the image
+
+    Returns:
+       Cropped image (rotations performed before crop)
+    '''
+
     rot_img = rotate( img, angle )
     center = tuple([x//2 for x in img.size])
     rot_pos = rot_img_vec( pos, angle, center )
