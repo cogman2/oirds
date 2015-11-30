@@ -28,7 +28,10 @@ def rot_img_vec( vec, angle_deg, center=(0,0) ):
     np_center = numpy.array(center)
     np_vec_prime = np_vec-np_center
     m = rot_matrix( -angle_deg ) # negative angle since top of image is (0,0)
-    return numpy.inner( m, np_vec_prime ) + np_center
+    z = numpy.inner( m, np_vec_prime ) + np_center
+    if z.shape[0] != 2:
+        z = numpy.reshape( z, (2,1) )
+    return z
 
 def crop_rotate( img, pos, dims, angle ):
     '''Crop an image given a centroid and rotation
