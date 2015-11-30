@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # Used to build the training images for a labeled data set.
 # each training image is white.  The polygons representing each label
@@ -9,22 +10,14 @@ label_colors = [(64,128,64),(192,0,128),(0,128,192),(0,128,64),(128,0,0)]
 
 def main():
     import os
-    from PIL import Image
     import pandas as pd
     import itertools
     import glob
     import sys
-    import shapely
-    from PIL import Image
-    if sys.version_info[0] < 3:
-        from StringIO import StringIO
-    else:
-        from io import StringIO
 
     if len(sys.argv) < 2:
       print "Usage: ", sys.argv[0], " dataDir"
       sys.exit( 0 )
-
 
     parentDataDir = sys.argv[1]
     if parentDataDir[-1] != '/':
@@ -76,11 +69,10 @@ def main():
 
 def convertImg(name,xlsInfoList, dir):
   from shapely.wkt import dumps, loads
-#  from shapely import dumps, loads
   from shapely.geometry import polygon
   from PIL import Image
   print name + '-----------'
-  imRaw = Image.open(dir + '/png/' + xlsInfoList[0][1][0:xlsInfoList[0][1].index('.tif')] + '.png') 
+  imRaw = Image.open(dir + 'png/' + xlsInfoList[0][1][0:xlsInfoList[0][1].index('.tif')] + '.png') 
   imLabel = Image.new("RGB", imRaw.size, "white")
   for r in xlsInfoList:
     poly = r[3].replace("[",'(').replace("]","").replace(";",",")
@@ -91,8 +83,7 @@ def convertImg(name,xlsInfoList, dir):
     try:
         labelImage(imLabel, polyObj, label_colors[r[2]])
     except:
-        continue
-  return imLabel, imRaw
+        pass
    
 def labelImage(img, poly, color):
   from shapely.geometry import Point
@@ -104,9 +95,9 @@ def labelImage(img, poly, color):
         img.putpixel((x, y), color)
 
 def outGT (xlsInfo, line, namesIdx, out_txn ):
+   import caffe
    imageFile = line.split()[0]
    imageLabel = int(line.split()[1])
-   xlsRow = xlsInfo.iloc[names(os.path.basename(path)),:]
    imRaw = Image.open(imageFile) # or load whatever ndarray you need
    im = np.array(imRaw)
    # convert to one dimensional ground truth labels

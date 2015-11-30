@@ -50,7 +50,7 @@ def main():
     for i,r in xlsInfo.iterrows():
        if (lastname!= r[1] and len(lastList) > 0):
            labelImage, rawImage = convertImg(lastname, lastList, parentDataDir)
-           labelImage.save(parentDataDir+"png/"+ lastname[0:lastname.index('.tif')] + ".png")
+           labelImage.save(parentDataDir+"/labels/"+ lastname[0:lastname.index('.tif')] + ".png")
            # need to send to training or test set here!
            lastList=[]
        else:
@@ -88,10 +88,7 @@ def convertImg(name,xlsInfoList, dir):
     poly = 'POLYGON (' + poly + ',' + beg + '))'
     print(poly)
     polyObj = loads(poly)
-    try:
-        labelImage(imLabel, polyObj, label_colors[r[2]])
-    except:
-        continue
+    labelImage(imLabel, polyObj, label_colors[r[2]])
   return imLabel, imRaw
    
 def labelImage(img, poly, color):
