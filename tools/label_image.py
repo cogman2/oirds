@@ -5,20 +5,22 @@
 
 #import h5py, os
 
+import matplotlib 
+matplotlib.use('Agg') 
 import lmdb
+from PIL import Image
+
 label_colors = [(64,128,64),(192,0,128),(0,128,192),(0,128,64),(128,0,0)]
 modes = ['VEHICLE/CAR','VEHICLE/PICK-UP','VEHICLE/TRUCK','VEHICLE/UNKNOWN','VEHICLE/VAN']
 modeIndices = dict( zip( modes, [int(x) for x in range( len(modes) )] ) )
 
 def main():
     import os
-    from PIL import Image
     import pandas as pd
     import itertools
     import glob
     import sys
     import random
-    from PIL import Image
     if sys.version_info[0] < 3:
         from StringIO import StringIO
     else:
@@ -56,25 +58,13 @@ def main():
     label_db_train = lmdb.open('groundtruth_train', map_size=int(94371840))
     label_db_test = lmdb.open('groundtruth_test', map_size=int(94371840))
 
-    lastList=[]
-    lastname=''
-
     setIsTest(xlsInfo,0.18)
-    for i,r in xlsInfo.iterrows():
-       if (lastname!= r[2] and len(lastList) > 0):
-           labelImage, rawImage = convertImg(lastname, lastList, parentDataDir)
-           if (r[6]==1):
-              outGT(rawImage, out_db_test)
-              outGT(labelImage, label_db_test)
-           else:
-              outGT(rawImage, out_db_train)
-              outGT(labelImage, label_db_train)
-           #labelImage.save(parentDataDir+"/png/"+ lastname[0:lastname.index('.tif')] + ".png")
-           # need to send to training or test set here!
-           lastList=[]
-       else:
-           lastList.append(r)
-       lastname=r[2]
+
+    with out_db_train.begin(write=True) as odn_txn:
+     with out_db_test.begin(write=True) as ods_txn:
+      with label_db_train.begin(write=True) as ldn_txn:
+       with label_db_test.begin(write=True) as lds_txn:
+         writeOutImages(xlsInfo, parentDataDir, odn_txn, ods_txn, ldn_txn, lds_txn)
 
     out_db_train.close()
     label_db_train.close()
@@ -82,6 +72,29 @@ def main():
     label_db_test.close()
     sys.exit(0)
 
+
+def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn):
+    lastList=[]
+    lastname=''
+    test_idx = 0
+    train_idx =0
+    for i,r in xlsInfo.iterrows():
+       if (lastname!= r[2] and len(lastList) > 0):
+           labelImage, rawImage = convertImg(lastname, lastList, parentDataDir)
+           if (r[6]==1):
+              outGT(rawImage, ods_txn, test_idx)
+              outGT(labelImage, lds_txn, test_idx)
+              test_idx+=1
+           else:
+              outGT(rawImage, odn_txn, train_idx)
+              outGT(labelImage, ldn_txn, train_idx)
+              train_idx+=1
+           #labelImage.save(parentDataDir+"png/"+ lastname[0:lastname.index('.tif')] + ".png")
+           # need to send to training or test set here!
+           lastList=[]
+       else:
+           lastList.append(r)
+       lastname=r[2]
 
 
 #with h5py.File('train.h5','w') as H:
@@ -121,23 +134,26 @@ def convertImg(name,xlsInfoList, dir):
    
 def labelImage(img, poly, color):
   from shapely.geometry import Point
-  width, _ = img.size
-  for i, px in enumerate(img.getdata()):
-     y = i / width
-     x = i % width
-     if poly.contains(Point(x, y)):
-        img.putpixel((x, y), color)
+  width, length = img.size
+  bounds = poly.bounds
+  for x in (xrange(int(bounds[0]),int(bounds[2]))):
+     for y in (xrange(int(bounds[1]),int(bounds[3]))):
+       if poly.contains(Point(x, y)):
+          img.putpixel((x, y), color)
 
-def outGT (im, out_txn):
+def outGT (im, out_txn, idx):
    import caffe
-   im = np.array(im.resize(128,128))
+   import numpy as np
+   wpercent = (128/float(im.size[0]))
+   hsize = int((float(im.size[1])*float(wpercent)))
+   tmp = np.array(im.resize((128,hsize),Image.ANTIALIAS))
+   #tmp = np.array(tmp,dtype=np.float32)
    # convert to one dimensional ground truth labels
-   tmp = np.uint8(np.zeros(im[:,:,0:1].shape))
-
+#   tmp = np.uint8(np.zeros(im[:,:,0:1].shape))
    # - in Channel x Height x Width order (switch from H x W x C)
    tmp = tmp.transpose((2,0,1))
    im_dat = caffe.io.array_to_datum(tmp)
-   out_txn.put('{:0>10d}'.format(in_idx), im_dat.SerializeToString())
+   out_txn.put('{:0>10d}'.format(idx), im_dat.SerializeToString())
 
 if __name__=="__main__":
     main()
