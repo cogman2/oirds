@@ -10,7 +10,7 @@ matplotlib.use('Agg')
 import lmdb
 from PIL import Image
 
-label_colors = [(64,128,64),(192,0,128),(0,128,192),(0,128,64),(128,0,0)]
+label_colors = [(64,128,64),(192,0,128),(0,128,192),(0,128,63),(128,0,1)]
 modes = ['VEHICLE/CAR','VEHICLE/PICK-UP','VEHICLE/TRUCK','VEHICLE/UNKNOWN','VEHICLE/VAN']
 modeIndices = dict( zip( modes, [int(x) for x in range( len(modes) )] ) )
 
@@ -82,12 +82,12 @@ def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn):
        if (lastname!= r[2] and len(lastList) > 0):
            labelImage, rawImage = convertImg(lastname, lastList, parentDataDir)
            if (r[6]==1):
-              outGT(rawImage, ods_txn, test_idx)
-              outGT(labelImage, lds_txn, test_idx)
+              outGT(resizeImg(rawImage), ods_txn, test_idx)
+              outGTLabel(resizeImg(labelImage), lds_txn, test_idx)
               test_idx+=1
            else:
-              outGT(rawImage, odn_txn, train_idx)
-              outGT(labelImage, ldn_txn, train_idx)
+              outGT(resizeImg(rawImage), odn_txn, train_idx)
+              outGTLabel(resizeImg(labelImage), ldn_txn, train_idx)
               train_idx+=1
            #labelImage.save(parentDataDir+"png/"+ lastname[0:lastname.index('.tif')] + ".png")
            # need to send to training or test set here!
@@ -97,6 +97,11 @@ def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn):
        lastname=r[2]
 
 
+def resizeImg(im):
+   wpercent = (128/float(im.size[0]))
+   hsize = int((float(im.size[1])*float(wpercent)))
+   return im.resize((128,hsize),Image.ANTIALIAS)
+   
 #with h5py.File('train.h5','w') as H:
  #   H.create_dataset( 'X', data=X ) # note the name X given to the dataset!
  #   H.create_dataset( 'y', data=y ) # note the name y given to the dataset!
@@ -144,13 +149,16 @@ def labelImage(img, poly, color):
 def outGT (im, out_txn, idx):
    import caffe
    import numpy as np
-   wpercent = (128/float(im.size[0]))
-   hsize = int((float(im.size[1])*float(wpercent)))
-   tmp = np.array(im.resize((128,hsize),Image.ANTIALIAS))
-   #tmp = np.array(tmp,dtype=np.float32)
-   # convert to one dimensional ground truth labels
-#   tmp = np.uint8(np.zeros(im[:,:,0:1].shape))
-   # - in Channel x Height x Width order (switch from H x W x C)
+   tmp = np.array(im)
+   tmp = tmp.transpose((2,0,1))
+   im_dat = caffe.io.array_to_datum(tmp)
+   out_txn.put('{:0>10d}'.format(idx), im_dat.SerializeToString())
+
+def outGTLabel (im, out_txn, idx):
+   import caffe
+   import numpy as np
+   tmp = np.array(im)
+   tmp = tmp[:,:,1:2:1]
    tmp = tmp.transpose((2,0,1))
    im_dat = caffe.io.array_to_datum(tmp)
    out_txn.put('{:0>10d}'.format(idx), im_dat.SerializeToString())
