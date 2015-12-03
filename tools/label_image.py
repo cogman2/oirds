@@ -81,6 +81,8 @@ def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn):
     for i,r in xlsInfo.iterrows():
        if (lastname!= r[2] and len(lastList) > 0):
            labelImage, rawImage = convertImg(lastname, lastList, parentDataDir)
+           if (rawImage.size[0] < 96 or rawImage.size[1] < 96):
+               continue
            if (r[6]==1):
               outGT(resizeImg(rawImage), ods_txn, test_idx)
               outGTLabel(resizeImg(labelImage), lds_txn, test_idx)
@@ -98,9 +100,9 @@ def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn):
 
 
 def resizeImg(im):
-   wpercent = (128/float(im.size[0]))
+   wpercent = (96/float(im.size[0]))
    hsize = int((float(im.size[1])*float(wpercent)))
-   return im.resize((128,hsize),Image.ANTIALIAS)
+   return im.resize((96,hsize),Image.ANTIALIAS).crop((0,0,96,96))
    
 #with h5py.File('train.h5','w') as H:
  #   H.create_dataset( 'X', data=X ) # note the name X given to the dataset!
