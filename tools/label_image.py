@@ -10,9 +10,10 @@ matplotlib.use('Agg')
 import lmdb
 from PIL import Image
 
-label_colors = [(64,128,64),(192,0,128),(0,128,192),(0,128,63),(128,0,1)]
+label_colors = [(64,128,5),(192,0,1),(0,128,2),(0,128,3),(128,0,4)]
 modes = ['VEHICLE/CAR','VEHICLE/PICK-UP','VEHICLE/TRUCK','VEHICLE/UNKNOWN','VEHICLE/VAN']
 modeIndices = dict( zip( modes, [int(x) for x in range( len(modes) )] ) )
+imageSizeCrop=128
 
 def main():
     import os
@@ -81,7 +82,7 @@ def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn):
     for i,r in xlsInfo.iterrows():
        if (lastname!= r[2] and len(lastList) > 0):
            labelImage, rawImage = convertImg(lastname, lastList, parentDataDir)
-           if (rawImage.size[0] < 96 or rawImage.size[1] < 96):
+           if (rawImage.size[0] < imageSizeCrop or rawImage.size[1] < imageSizeCrop):
                continue
            if (r[6]==1):
               outGT(resizeImg(rawImage), ods_txn, test_idx)
@@ -100,9 +101,9 @@ def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn):
 
 
 def resizeImg(im):
-   wpercent = (96/float(im.size[0]))
+   wpercent = (imageSizeCrop/float(im.size[0]))
    hsize = int((float(im.size[1])*float(wpercent)))
-   return im.resize((96,hsize),Image.ANTIALIAS).crop((0,0,96,96))
+   return im.resize((imageSizeCrop ,hsize),Image.ANTIALIAS).crop((0,0,imageSizeCrop, imageSizeCrop))
    
 #with h5py.File('train.h5','w') as H:
  #   H.create_dataset( 'X', data=X ) # note the name X given to the dataset!
@@ -127,7 +128,7 @@ def convertImg(name,xlsInfoList, dir):
   from PIL import Image
   print name + '-----------'
   imRaw = Image.open(dir + '/png/' + xlsInfoList[0][2][0:xlsInfoList[0][2].index('.tif')] + '.png') 
-  imLabel = Image.new("RGB", imRaw.size, "white")
+  imLabel = Image.new("RGB", imRaw.size)
   for r in xlsInfoList:
     poly = r[4].replace("[",'(').replace("]","").replace(";",",")
     beg = poly[1:poly.index(',')]
