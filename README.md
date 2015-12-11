@@ -43,9 +43,9 @@ Changed import order/statement prior to import of cafee:
 F-CNN Work:
      1. Convert images to png files.  Place in png directory with top level Data Set.
      2. python  label_image.py /data/oirds
-       -- creates label and data LMDB files (raw_train, raw_test, groundtruth_train, groundtrush_test)
+       -- creates label and data LMDB files (raw_train, raw_test, groundtruth_train, groundtruth_test)
      3. /opt/fcn/caffe/build/tools/compute_image_mean raw_train train_mean.binaryproto
      4. /opt/fcn/caffe/build/tools/compute_image_mean raw_test test_mean.binaryproto
-     5. /opt/fcn/caffe/build/tools/caffe train -solver solver.prototxt -weights fcn-8s-pascalcontext.caffemodel -gpu 0
+     5. /opt/fcn/caffe/build/tools/caffe train -solver fcn8_solver.prototxt -weights fcn-8s-pascalcontext.caffemodel -gpu 0
        -- the model comes from https://gist.github.com/longjon/1bf3aa1e0b8e788d7e1d#file-readme-md
-     6. /opt/fcn/caffe/build/tools/caffe test -model train_val.prototxt -weights train_iter_8000.caffemodel -gpu 0
+     6. /opt/fcn/caffe/build/tools/caffe test -model fcn8_deploy.prototxt -weights train_iter_8000.caffemodel -gpu 0
