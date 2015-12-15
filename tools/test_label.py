@@ -59,27 +59,42 @@ def runcaffe (dataDir,im):
    #out= forward_all(data=np.asarray([transformer.preprocess('data', im)]))
    net.blobs['data'].data[...] = transformer.preprocess('data', im)
    outputResult(net.forward(), transformer, net.blobs['data'].data[0])
+   #   filters = net.params['conv1'][0].data
+   #   vis_square(filters.transpose(0, 2, 3, 1))
+
 
 def outputResult(out, transformer, data):
   classPerPixel = out['score'][0].argmax(axis=0)
   ima = transformer.deprocess('data', data)
   shapeIME =  (classPerPixel.shape[0],classPerPixel.shape[1])
- # print out['prob'][0].argmax(axis=1)
- # print out['prob'][0].argmax(axis=2)
-  plt.subplot(1, 3, 1)
+  # print out['prob'][0].argmax(axis=1)
+  # print out['prob'][0].argmax(axis=2)
+  plt.subplot(1, 2, 1)
   plt.imshow(ima)
 
-#  for x in range(0,59):
-#    plt.subplot(8, 8, x+2)
-#    plt.imshow(toImageArray(np.ones(shapeIME, dtype=np.uint8)*x))
-
-  plt.subplot(1, 3, 2)
+  plt.subplot(1, 2, 2)
   plt.imshow(toImageArray(classPerPixel)) 
 
-  plt.subplot(1, 3, 2)
-  plt.imshow(out('score')) 
+ # plt.subplot(1, 3, 3)
+ # plt.imshow(out('score')[0]) 
   plt.savefig('outputPlt')
 
+
+def vis_square(data, padsize=1, padval=0):
+    data -= data.min()
+    data /= data.max()
+    
+    # force the number of filters to be square
+    n = int(np.ceil(np.sqrt(data.shape[0])))
+    padding = ((0, n ** 2 - data.shape[0]), (0, padsize), (0, padsize)) + ((0, 0),) * (data.ndim - 3)
+    data = np.pad(data, padding, mode='constant', constant_values=(padval, padval))
+    
+    # tile the filters into an image
+    data = data.reshape((n, n) + data.shape[1:]).transpose((0, 2, 1, 3) + tuple(range(4, data.ndim + 1)))
+    data = data.reshape((n * data.shape[1], n * data.shape[3]) + data.shape[4:])
+    
+    plt.imshow(data)
+    plt.savefig('cnvPlt')
 
 def toImageArray(classPerPixel):
   ima = np.zeros((classPerPixel.shape[0], classPerPixel.shape[0], 3), dtype=np.uint8)

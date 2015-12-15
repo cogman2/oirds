@@ -7,11 +7,10 @@ layer {
     phase: TRAIN
   }
   transform_param {
-    mirror: true
-    mean_file: "/home/rwgdrummer/oirds/tools/train_mean.binaryproto"
+    mean_file: "/data/oird_fcn/train_mean.binaryproto"
   }
   data_param {
-    source: "/home/rwgdrummer/oirds/tools/raw_train"
+    source: "/data/oird_fcn/raw_train"
     batch_size: 2
     backend: LMDB
   }
@@ -23,11 +22,8 @@ layer {
   include {
     phase: TRAIN
   }
-  transform_param {
-    mirror: true
-  }
   data_param {
-    source: "/home/rwgdrummer/oirds/tools/groundtruth_train"
+    source: "/data/oird_fcn/groundtruth_train"
     batch_size: 2
     backend: LMDB
   }
@@ -40,12 +36,11 @@ layer {
     phase: TEST
   }
   transform_param {
-    mirror: true
-    mean_file: "/home/rwgdrummer/oirds/tools/test_mean.binaryproto"
+    mean_file: "/data/oird_fcn/test_mean.binaryproto"
   }
   data_param {
-    source: "/home/rwgdrummer/oirds/tools/raw_test"
-    batch_size: 1
+    source: "/data/oird_fcn/raw_test"
+    batch_size: 2
     backend: LMDB
   }
 }
@@ -57,8 +52,8 @@ layer {
     phase: TEST
   }
   data_param {
-    source: "/home/rwgdrummer/oirds/tools/groundtruth_test"
-    batch_size: 1
+    source: "/data/oird_fcn/groundtruth_test"
+    batch_size: 2
     backend: LMDB
   }
 }
@@ -525,10 +520,10 @@ layer {
   }
 }
 layer {
-  name: "score59"
+  name: "score59-eric"
   type: "Convolution"
   bottom: "fc7"
-  top: "score59"
+  top: "score59-eric"
   param {
     lr_mult: 1
     decay_mult: 1
@@ -538,32 +533,32 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: 60
+    num_output: 6
     kernel_size: 1
     engine: CAFFE
   }
 }
 layer {
-  name: "upscore2"
+  name: "upscore2-eric"
   type: "Deconvolution"
-  bottom: "score59"
-  top: "upscore2"
+  bottom: "score59-eric"
+  top: "upscore2-eric"
   param {
     lr_mult: 1
     decay_mult: 1
   }
   convolution_param {
-    num_output: 60
+    num_output: 6
     bias_term: false
     kernel_size: 4
     stride: 2
   }
 }
 layer {
-  name: "score-pool4"
+  name: "score-pool4-eric"
   type: "Convolution"
   bottom: "pool4"
-  top: "score-pool4"
+  top: "score-pool4-eric"
   param {
     lr_mult: 1
     decay_mult: 1
@@ -573,44 +568,44 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: 60
+    num_output: 6
     kernel_size: 1
     engine: CAFFE
   }
 }
-layer { type: 'Crop' name: 'crop' bottom: 'score-pool4' bottom: 'upscore2'
-  top: 'score-pool4c' }
+layer { type: 'Crop' name: 'crop' bottom: 'score-pool4-eric' bottom: 'upscore2-eric'
+  top: 'score-pool4c-eric' }
 layer {
   name: "fuse"
   type: "Eltwise"
-  bottom: "upscore2"
-  bottom: "score-pool4c"
+  bottom: "upscore2-eric"
+  bottom: "score-pool4c-eric"
   top: "score-fused"
   eltwise_param {
     operation: SUM
   }
 }
 layer {
-  name: "upsample-fused-16"
+  name: "upsample-fused-16-eric"
   type: "Deconvolution"
   bottom: "score-fused"
-  top: "score4"
+  top: "score4-eric"
   param {
     lr_mult: 1
     decay_mult: 1
   }
   convolution_param {
-    num_output: 60
+    num_output: 6
     bias_term: false
     kernel_size: 4
     stride: 2
   }
 }
 layer {
-  name: "score-pool3"
+  name: "score-pool3-eric"
   type: "Convolution"
   bottom: "pool3"
-  top: "score-pool3"
+  top: "score-pool3-eric"
   param {
     lr_mult: 1
     decay_mult: 1
@@ -620,43 +615,43 @@ layer {
     decay_mult: 0
   }
   convolution_param {
-    num_output: 60
+    num_output: 6
     kernel_size: 1
     engine: CAFFE
   }
 }
-layer { type: 'Crop' name: 'crop' bottom: 'score-pool3' bottom: 'score4'
-  top: 'score-pool3c' }
+layer { type: 'Crop' name: 'crop' bottom: 'score-pool3-eric' bottom: 'score4-eric'
+  top: 'score-pool3c-eric' }
 layer {
-  name: "fuse"
+  name: "fuse-eric"
   type: "Eltwise"
-  bottom: "score4"
-  bottom: "score-pool3c"
-  top: "score-final"
+  bottom: "score4-eric"
+  bottom: "score-pool3c-eric"
+  top: "score-final-eric"
   eltwise_param {
     operation: SUM
   }
 }
 layer {
-  name: "upsample"
+  name: "upsample-eric"
   type: "Deconvolution"
-  bottom: "score-final"
-  top: "bigscore"
+  bottom: "score-final-eric"
+  top: "bigscore-eric"
   param {
     lr_mult: 0
   }
   convolution_param {
-    num_output: 60
+    num_output: 6
     bias_term: false
     kernel_size: 16
     stride: 8
   }
 }
-layer { type: 'Crop' name: 'crop' bottom: 'bigscore' bottom: 'data' top: 'score' }
+layer { type: 'Crop' name: 'crop' bottom: 'bigscore-eric' bottom: 'data' top: 'score-eric' }
 layer {
   name: "loss"
   type: "SoftmaxWithLoss"
-  bottom: "score"
+  bottom: "score-eric"
   bottom: "label"
   top: "loss"
   loss_param {
