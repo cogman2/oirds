@@ -54,10 +54,10 @@ def main():
 
     xlsInfo['isTest'] = 0
     xlsInfo = xlsInfo.reset_index()
-    out_db_train = lmdb.open('raw_train', map_size=int(94371840))
-    out_db_test = lmdb.open('raw_test', map_size=int(94371840))
-    label_db_train = lmdb.open('groundtruth_train', map_size=int(94371840))
-    label_db_test = lmdb.open('groundtruth_test', map_size=int(94371840))
+    out_db_train = lmdb.open('raw_train', map_size=int(4294967296))
+    out_db_test = lmdb.open('raw_test', map_size=int(4294967296))
+    label_db_train = lmdb.open('groundtruth_train', map_size=int(4294967296))
+    label_db_test = lmdb.open('groundtruth_test', map_size=int(4294967296))
 
     setIsTest(xlsInfo,0.18)
 
@@ -85,29 +85,33 @@ def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn):
            if (rawImage.size[0] < imageSizeCrop or rawImage.size[1] < imageSizeCrop):
                continue
            if (r[6]==1):
-              outGT(resizeImg(rawImage), ods_txn, test_idx)
-              outGTLabel(resizeImg(labelImage), lds_txn, test_idx)
+              outGT(rawImage, ods_txn, test_idx)
+              outGTLabel(labelImage, lds_txn, test_idx)
               test_idx+=1
            else:
-              outGT(resizeImg(rawImage), odn_txn, train_idx)
-              outGTLabel(resizeImg(labelImage), ldn_txn, train_idx)
+              outGT(rawImage, odn_txn, train_idx)
+              outGTLabel(labelImage, ldn_txn, train_idx)
               train_idx+=1
-           #labelImage.save(parentDataDir+"png/"+ lastname[0:lastname.index('.tif')] + ".png")
+           labelImage.save(parentDataDir+"png_gt/"+ lastname[0:lastname.index('.tif')] + ".png")
+           rawImage.save(parentDataDir+"png_raw/"+ lastname[0:lastname.index('.tif')] + ".png")
            # need to send to training or test set here!
            lastList=[]
        else:
            lastList.append(r)
        lastname=r[2]
 
-
 def resizeImg(im):
    wpercent = (imageSizeCrop/float(im.size[0]))
    hsize = int((float(im.size[1])*float(wpercent)))
    return im.resize((imageSizeCrop ,hsize),Image.ANTIALIAS).crop((0,0,imageSizeCrop, imageSizeCrop))
    
-#with h5py.File('train.h5','w') as H:
- #   H.create_dataset( 'X', data=X ) # note the name X given to the dataset!
- #   H.create_dataset( 'y', data=y ) # note the name y given to the dataset!
+def resize(poly, initialSize):
+   from shapely.geometry import polygon
+   from shapely.ops import transform
+   wpercent = (imageSizeCrop/float(initialSize[0]))
+   hpercent = (imageSizeCrop/float(initialSize[1]))
+   return transform(lambda x, y, z=None: (x*wpercent,y*hpercent), poly)
+
 
 def setIsTest(xlsInfo, percent):
     import numpy as np
@@ -127,13 +131,16 @@ def convertImg(name,xlsInfoList, dir):
   from shapely.geometry import polygon
   from PIL import Image
   print name + '-----------'
-  imRaw = Image.open(dir + '/png/' + xlsInfoList[0][2][0:xlsInfoList[0][2].index('.tif')] + '.png') 
+  imRaw = Image.open(dir + 'png/' + name[0:name.index('.tif')] + '.png') 
+  initialSize = imRaw.size
+  imRaw = resizeImg(imRaw)
   imLabel = Image.new("RGB", imRaw.size)
   for r in xlsInfoList:
     poly = r[4].replace("[",'(').replace("]","").replace(";",",")
     beg = poly[1:poly.index(',')]
     poly = 'POLYGON (' + poly + ',' + beg + '))'
     polyObj = loads(poly)
+    polyObj = resize(polyObj, initialSize)
     try:
         labelImage(imLabel, polyObj, label_colors[modeIndices[r[5]]])
     except:
@@ -169,3 +176,4 @@ def outGTLabel (im, out_txn, idx):
 
 if __name__=="__main__":
     main()
+
