@@ -7,14 +7,17 @@ import os
 import pandas as pd
 import random
 import sys
-import img_manip
+import img_tools
 from PIL import Image
 import numpy
+import shapely.geometry
 
 imagePathColName = 'Image Path'
 imageNameColName = 'Image Name'
+intersectionColName = 'Intersection Polygon' 
 modeColName = 'Mode of Target Type'
 centroidColName = 'Average Target Centroid'
+numTargetsColName = 'Average Number of Targets in Image'
 occlusionColName = 'Average Target Occlusion %'
 shadowColName = 'Average Target Shadow %'
 #  1 = Image Path
@@ -26,17 +29,22 @@ shadowColName = 'Average Target Shadow %'
 # 15 = Average Target Orientation
 # 25 - Average Target Occlusion %
 # 28 - Average Target Shadow %
+# 43 - Average Number of Targets in Image
 
 # define thresholds
 occlusionThreshold = 0.1
-shadowThreshold = 0.1
+shadowThreshold = 0.3
 
-cols = [1, 2, 8, 9, 25, 28]
+cols = [1, 2, 7, 8, 9, 25, 28, 43]
 
 defaultDim = (50,50)
 
-modes = ['VEHICLE/CAR', 'VEHICLE/PICK-UP', 'VEHICLE/TRUCK', 'VEHICLE/UNKNOWN', 'VEHICLE/VAN']
+no_vehicle_mode = "NOVEHICLE"
+modes = ['VEHICLE/CAR', 'VEHICLE/PICK-UP', 'VEHICLE/TRUCK', 'VEHICLE/UNKNOWN', 'VEHICLE/VAN', no_vehicle_mode]
 mode_indices = dict( zip( modes, [str(x) for x in range( len(modes) )] ) )
+bkgd_mode_index = mode_indices[ no_vehicle_mode ]
+
+file_exclusion_regions = dict()
 
 files = []
 
@@ -62,6 +70,23 @@ def boundary_fixed_centroid( centroid, size ):
     new_centroid = [new_centroid[i] if new_centroid[i] < (size[i]-defaultDim[i]//2) else (size[i]-defaultDim[i]//2) for i in xrange(len(centroid))]
 
     return new_centroid
+
+def get_bkgd_patch( img, dims, exclusion_regions ):
+    img_size = img.size
+    patch_centroid = (0,0)
+    intersects = True
+    n_iter = 0
+    while( intersects ):
+        if n_iter > 10000:
+            return img
+        patch_centroid = img_tools.random_patch_centroid( img, dims )
+        patch_bbox = img_tools.bbox( patch_centroid, dims )
+        for exclusion_region in exclusion_regions:
+            intersects = shapely.geometry.Polygon( patch_bbox ).intersects( shapely.geometry.Polygon( exclusion_region ) )
+            if intersects:
+                break
+        n_iter += 1
+    return img_tools.crop( img, patch_centroid, dims )
 
 def write_files( train_percent ):
     file_set = set( files )
@@ -92,28 +117,49 @@ def processXls( filename, parentDataDir ):
         mode = xlsInfo.iloc[i][modeColName]
         centroid = numpy.array([float(x) for x in xlsInfo.iloc[i][centroidColName][1:-1].split( ' ' )]) # get rid of []'s, and split into two
 
-        img = img_manip.open( filename )
+        img = img_tools.open( filename )
         img_size = img.size
 
-        centroid = boundary_fixed_centroid( centroid, img_size )
-        cropped_img = img_manip.crop( img, centroid, defaultDim )
         mode_index = mode_indices[mode]
         output_file_name = get_output_filename( filename, mode_index, -1 )
-        cropped_img.save( output_file_name )
-
         files.append( output_file_name + " " + mode_index )
+        if not os.path.exists( output_file_name ):
+            centroid = boundary_fixed_centroid( centroid, img_size )
+            cropped_img = img_tools.crop( img, centroid, defaultDim )
+            cropped_img.save( output_file_name )
 
+        # get background patch
+        intersection_list = [u.split(' ') for u in str(xlsInfo.iloc[i][intersectionColName])[1:-1].split(';')]
+        try:
+            intersection_region = [(int(v[0]), int(v[1])) for v in intersection_list]
+            if not file_exclusion_regions.has_key( filename ):
+                file_exclusion_regions[filename] = [intersection_region]
+            else:
+                file_exclusion_regions[filename] += [intersection_region]
+        except ValueError:
+            print 'Problems with intersection: ', intersection_list
+        
         # loop through angles
         for i in xrange(1,7):
-            angle = 30*i
-            centroid = boundary_fixed_centroid( centroid, img_size )
-            cropped_img = img_manip.crop_rotate( img, centroid, defaultDim, angle )
             mode_index = mode_indices[mode]
+            angle = 30*i
             output_file_name = get_output_filename( filename, mode_index, angle )
-            cropped_img.save( output_file_name )
+            if not os.path.exists( output_file_name ):
+                centroid = boundary_fixed_centroid( centroid, img_size )
+                cropped_img = img_tools.crop_rotate( img, centroid, defaultDim, angle )
+                cropped_img.save( output_file_name )
             files.append( output_file_name + " " + mode_index )
-            
 
+    # loop through backgrounds
+    for fil in file_exclusion_regions.keys():
+        bkgd_output_file_name = get_output_filename( fil, bkgd_mode_index, -1 )
+        if os.path.exists( bkgd_output_file_name ):
+            files.append( bkgd_output_file_name + " " + bkgd_mode_index )
+        else:
+            bkgd_patch = get_bkgd_patch( img, defaultDim, file_exclusion_regions[fil] )
+            if bkgd_patch != img:
+                bkgd_patch.save( bkgd_output_file_name )
+                files.append( bkgd_output_file_name + " " + bkgd_mode_index )
 
 def processAllXlsFiles( parentDataDir ):
     if parentDataDir[-1] != '/':
