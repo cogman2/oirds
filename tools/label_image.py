@@ -11,6 +11,7 @@ import lmdb
 from PIL import Image
 
 label_colors = [(64,128,5),(192,0,1),(0,128,2),(0,128,3),(128,0,4)]
+hacked_color = (64,49,7)
 modes = ['VEHICLE/CAR','VEHICLE/PICK-UP','VEHICLE/TRUCK','VEHICLE/UNKNOWN','VEHICLE/VAN']
 modeIndices = dict( zip( modes, [int(x) for x in range( len(modes) )] ) )
 imageSizeCrop=128
@@ -31,6 +32,22 @@ def main():
       print "Usage: ", sys.argv[0], " dataDir"
       sys.exit( 0 )
 
+
+    if (os.path.isdir("./png_gt")):
+      os.rmdir("./png_gt")
+    if (os.path.isdir("./png_raw")):
+      os.rmdir("./png_raw")
+    if (os.path.isdir("./raw_train")):
+      os.rmdir("./raw_train")
+    if (os.path.isdir("./raw_ttest")):
+      os.rmdir("./raw_test")
+    if (os.path.isdir("./groundtruth_train")):
+      os.rmdir("./groundtruth_train")
+    if (os.path.isdir("./groundtruth_test")):
+      os.rmdir("./groundtruth_test")
+
+    os.mkdir("./png_gt",0755)
+    os.mkdir("./png_raw",0755)
 
     parentDataDir = sys.argv[1]
     if parentDataDir[-1] != '/':
@@ -92,8 +109,8 @@ def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn):
               outGT(rawImage, odn_txn, train_idx)
               outGTLabel(labelImage, ldn_txn, train_idx)
               train_idx+=1
-           labelImage.save(parentDataDir+"png_gt/"+ lastname[0:lastname.index('.tif')] + ".png")
-           rawImage.save(parentDataDir+"png_raw/"+ lastname[0:lastname.index('.tif')] + ".png")
+           labelImage.save("./png_gt/"+ lastname[0:lastname.index('.tif')] + ".png")
+           rawImage.save("./png_raw/"+ lastname[0:lastname.index('.tif')] + ".png")
            # need to send to training or test set here!
            lastList=[]
        else:
@@ -142,7 +159,8 @@ def convertImg(name,xlsInfoList, dir):
     polyObj = loads(poly)
     polyObj = resize(polyObj, initialSize)
     try:
-        labelImage(imLabel, polyObj, label_colors[modeIndices[r[5]]])
+        labelImage(imLabel, polyObj, hacked_color) 
+# label_colors[modeIndices[r[5]]])
     except:
         continue
   return imLabel, imRaw
