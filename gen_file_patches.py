@@ -74,19 +74,56 @@ def boundary_fixed_centroid( centroid, size ):
 def get_bkgd_patch( img, dims, exclusion_regions ):
     img_size = img.size
     patch_centroid = (0,0)
-    intersects = True
+    done = False
     n_iter = 0
-    while( intersects ):
+    while( not done ):
         if n_iter > 10000:
             return img
         patch_centroid = img_tools.random_patch_centroid( img, dims )
         patch_bbox = img_tools.bbox( patch_centroid, dims )
+        intersects = False
         for exclusion_region in exclusion_regions:
             intersects = shapely.geometry.Polygon( patch_bbox ).intersects( shapely.geometry.Polygon( exclusion_region ) )
             if intersects:
                 break
+        if not intersects:
+            done = True
+            break
         n_iter += 1
-    return img_tools.crop( img, patch_centroid, dims )
+
+    return img_tools.crop( img, patch_centroid, dims ) # return if it doesn't intersect
+
+def get_bkgd_patches( img, dims, exclusion_regions ):
+    img_size = img.size
+    patches = []
+    i_step = dims[0]
+    j_step = dims[1]
+    i_end = img_size[0]-i_step
+    j_end = img_size[1]-j_step
+
+    i = 0
+    j = 0
+    while i < i_end:
+        intersects = False
+        while j < j_end:
+            shifted_i = i + i_step
+            shifted_j = j + j_step
+            patch_bbox = [ [i,j], [shifted_i, j], [shifted_i,shifted_j], [shifted_i, j] ]
+            for exclusion_region in exclusion_regions:
+                if shapely.geometry.Polygon( patch_bbox ).intersects( shapely.geometry.Polygon( exclusion_region ) ):
+                    intersects = True
+                    break
+            if intersects:
+                j += 1
+            else:
+                centroid =  ((i+shifted_i)//2,(j+shifted_j)//2)
+                patches.append( img_tools.crop( img, centroid, dims ) )
+                j += j_step
+        if intersects:
+            i += 1
+        else:
+            i += i_step #it's possible that this will cause us to miss some patches                                                                                                                                 
+    return patches
 
 def write_files( train_percent ):
     file_set = set( files )
@@ -108,6 +145,21 @@ def processXls( filename, parentDataDir ):
         filename = str(parentDataDir +
                        xlsInfo.iloc[i][imagePathColName][3:] + "/" +
                        xlsInfo.iloc[i][imageNameColName]).replace( "Dataset", "DataSet" ).replace( '.tif', '.png' )
+
+
+
+        # get background patch
+        intersection_list = [u.split(' ') for u in str(xlsInfo.iloc[i][intersectionColName])[1:-1].split(';')]
+        try:
+            intersection_region = [(int(v[0]), int(v[1])) for v in intersection_list]
+            if not file_exclusion_regions.has_key( filename ):
+                file_exclusion_regions[filename] = [intersection_region]
+            else:
+                file_exclusion_regions[filename] += [intersection_region]
+        except ValueError:
+            print 'Problems with intersection: ', intersection_list
+
+
         occlusion = float(xlsInfo.iloc[i][occlusionColName])
         if occlusion > occlusionThreshold:
             continue
@@ -127,17 +179,6 @@ def processXls( filename, parentDataDir ):
             centroid = boundary_fixed_centroid( centroid, img_size )
             cropped_img = img_tools.crop( img, centroid, defaultDim )
             cropped_img.save( output_file_name )
-
-        # get background patch
-        intersection_list = [u.split(' ') for u in str(xlsInfo.iloc[i][intersectionColName])[1:-1].split(';')]
-        try:
-            intersection_region = [(int(v[0]), int(v[1])) for v in intersection_list]
-            if not file_exclusion_regions.has_key( filename ):
-                file_exclusion_regions[filename] = [intersection_region]
-            else:
-                file_exclusion_regions[filename] += [intersection_region]
-        except ValueError:
-            print 'Problems with intersection: ', intersection_list
         
         # loop through angles
         for i in xrange(1,7):
@@ -156,6 +197,7 @@ def processXls( filename, parentDataDir ):
         if os.path.exists( bkgd_output_file_name ):
             files.append( bkgd_output_file_name + " " + bkgd_mode_index )
         else:
+            img = img_tools.open( fil )
             bkgd_patch = get_bkgd_patch( img, defaultDim, file_exclusion_regions[fil] )
             if bkgd_patch != img:
                 bkgd_patch.save( bkgd_output_file_name )
