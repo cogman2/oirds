@@ -55,7 +55,7 @@ def get_xls_dataframe( xlsFiles, colIndices ):
     return xlsInfo
 
 def get_output_filename( filename, label_idx, angle_deg ):
-    output_filename = filename[:-4]+"_"+label_idx
+    output_filename = filename[:-4]+"_Class_"+label_idx
     if angle_deg > 0:
         output_filename += "_angle_" + str(angle_deg)
         
