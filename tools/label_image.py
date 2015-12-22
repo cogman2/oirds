@@ -3,23 +3,15 @@
 # each training image is white.  The polygons representing each label
 # has an assigned color in the image.
 
-#import h5py, os
-
+import gt_tool
 import matplotlib 
 matplotlib.use('Agg') 
 import lmdb
 from PIL import Image
 
-label_colors = [(64,128,5),(192,0,1),(0,128,2),(0,128,3),(128,0,4)]
-hacked_color = (64,49,7)
-modes = ['VEHICLE/CAR','VEHICLE/PICK-UP','VEHICLE/TRUCK','VEHICLE/UNKNOWN','VEHICLE/VAN']
-modeIndices = dict( zip( modes, [int(x) for x in range( len(modes) )] ) )
-imageSizeCrop=128
-
 def main():
     import os
-    import pandas as pd
-    import itertools
+    import shutil
     import glob
     import sys
     import random
@@ -34,17 +26,17 @@ def main():
 
 
     if (os.path.isdir("./png_gt")):
-      os.rmdir("./png_gt")
+      shutil.rmtree("./png_gt")
     if (os.path.isdir("./png_raw")):
-      os.rmdir("./png_raw")
+      shutil.rmtree("./png_raw")
     if (os.path.isdir("./raw_train")):
-      os.rmdir("./raw_train")
+      shutil.rmtree("./raw_train")
     if (os.path.isdir("./raw_ttest")):
-      os.rmdir("./raw_test")
+      shutil.rmtree("./raw_test")
     if (os.path.isdir("./groundtruth_train")):
-      os.rmdir("./groundtruth_train")
+      shutil.rmtree("./groundtruth_train")
     if (os.path.isdir("./groundtruth_test")):
-      os.rmdir("./groundtruth_test")
+      shutil.rmtree("./groundtruth_test")
 
     os.mkdir("./png_gt",0755)
     os.mkdir("./png_raw",0755)
@@ -52,31 +44,17 @@ def main():
     parentDataDir = sys.argv[1]
     if parentDataDir[-1] != '/':
        parentDataDir += "/"
-    dataDirs = [parentDataDir+z for z in filter( lambda x: x.startswith( "DataSet_" ), os.listdir( parentDataDir ) )]
-    xlsFiles = list( itertools.chain( *[ glob.glob( x + "/*.xls" ) for x in dataDirs ] ) )
-
-    imagePathIndex = 'Image Path'
-    imageNameIndex = 'Image Name'
-    modeIndex = 'Mode of Target Type'
+    
+    xlsInfo = gt_tool.loadXLSFiles(parentDataDir)
 
     randUniform = random.seed(23361)
 
-# 1, 2, 3 = "Image Path", "Image Name", "Target Number"
-# 7, 9 = "Intersection Polygon", "Mode of Target Type"
-
-    cols = [1,2,3,7,9]
-    xlsInfo = pd.DataFrame()
-    for xlsFile in xlsFiles:
-       xlsInfo = xlsInfo.append( pd.read_excel( io=xlsFile, parse_cols=cols, ignore_index=True ) )
-
-    xlsInfo['isTest'] = 0
-    xlsInfo = xlsInfo.reset_index()
     out_db_train = lmdb.open('raw_train', map_size=int(4294967296))
     out_db_test = lmdb.open('raw_test', map_size=int(4294967296))
     label_db_train = lmdb.open('groundtruth_train', map_size=int(4294967296))
     label_db_test = lmdb.open('groundtruth_test', map_size=int(4294967296))
 
-    setIsTest(xlsInfo,0.18)
+    gt_tool.setIsTest(xlsInfo,0.18)
 
     with out_db_train.begin(write=True) as odn_txn:
      with out_db_test.begin(write=True) as ods_txn:
@@ -99,7 +77,7 @@ def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn):
     for i,r in xlsInfo.iterrows():
        if (lastname!= r[2] and len(lastList) > 0):
            labelImage, rawImage = convertImg(lastname, lastList, parentDataDir)
-           if (rawImage.size[0] < imageSizeCrop or rawImage.size[1] < imageSizeCrop):
+           if (rawImage.size[0] < gt_tool.imageCropSize or rawImage.size[1] < gt_tool.imageCropSize):
                continue
            if (r[6]==1):
               outGT(rawImage, ods_txn, test_idx)
@@ -117,63 +95,12 @@ def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn):
            lastList.append(r)
        lastname=r[2]
 
-def resizeImg(im):
-   wpercent = (imageSizeCrop/float(im.size[0]))
-   hsize = int((float(im.size[1])*float(wpercent)))
-   return im.resize((imageSizeCrop ,hsize),Image.ANTIALIAS).crop((0,0,imageSizeCrop, imageSizeCrop))
-   
-def resize(poly, initialSize):
-   from shapely.geometry import polygon
-   from shapely.ops import transform
-   wpercent = (imageSizeCrop/float(initialSize[0]))
-   hpercent = (imageSizeCrop/float(initialSize[1]))
-   return transform(lambda x, y, z=None: (x*wpercent,y*hpercent), poly)
-
-
-def setIsTest(xlsInfo, percent):
-    import numpy as np
-    labelCounts = [0 for i in xrange(len(label_colors))]
-    for i,r in xlsInfo.iterrows():  
-       labelCounts[modeIndices[r[5]]] += 1
-    for i in xrange(len(labelCounts)):
-      labelCounts[i] = int(labelCounts[i]*percent)
-    for i in np.random.permutation(len(xlsInfo)):
-       if(labelCounts[modeIndices[xlsInfo.iloc[i,5]]] > 0):
-         xlsInfo.loc[i,'isTest']=1
-         labelCounts[modeIndices[xlsInfo.iloc[i,5]]] -= 1
-
 def convertImg(name,xlsInfoList, dir):
-  from shapely.wkt import dumps, loads
-#  from shapely import dumps, loads
-  from shapely.geometry import polygon
-  from PIL import Image
   print name + '-----------'
-  imRaw = Image.open(dir + 'png/' + name[0:name.index('.tif')] + '.png') 
-  initialSize = imRaw.size
-  imRaw = resizeImg(imRaw)
-  imLabel = Image.new("RGB", imRaw.size)
-  for r in xlsInfoList:
-    poly = r[4].replace("[",'(').replace("]","").replace(";",",")
-    beg = poly[1:poly.index(',')]
-    poly = 'POLYGON (' + poly + ',' + beg + '))'
-    polyObj = loads(poly)
-    polyObj = resize(polyObj, initialSize)
-    try:
-        labelImage(imLabel, polyObj, hacked_color) 
-# label_colors[modeIndices[r[5]]])
-    except:
-        continue
-  return imLabel, imRaw
+  initialSize, imRaw= gt_tool.loadImage(dir + 'png/' + name[0:name.index('.tif')] + '.png')
+  imLabel = gt_tool.createLabelImage(xlsInfoList, initialSize, imRaw.size)
+  return imLabel,imRaw
    
-def labelImage(img, poly, color):
-  from shapely.geometry import Point
-  width, length = img.size
-  bounds = poly.bounds
-  for x in (xrange(int(bounds[0]),int(bounds[2]))):
-     for y in (xrange(int(bounds[1]),int(bounds[3]))):
-       if poly.contains(Point(x, y)):
-          img.putpixel((x, y), color)
-
 def outGT (im, out_txn, idx):
    import caffe
    import numpy as np
