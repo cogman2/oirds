@@ -105,6 +105,7 @@ def outGT (im, out_txn, idx):
    import caffe
    import numpy as np
    tmp = np.array(im)
+   tmp= tmp[:,:,::-1]
    tmp = tmp.transpose((2,0,1))
    im_dat = caffe.io.array_to_datum(tmp)
    out_txn.put('{:0>10d}'.format(idx), im_dat.SerializeToString())

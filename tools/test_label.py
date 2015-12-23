@@ -46,6 +46,8 @@ def main():
 
     lastList=[]
     lastname=''
+
+    txtOut = open('log.txt','w');
     for i,r in xlsInfos.iterrows():
        if (lastname!= r[2] and len(lastList) > 0):
           if(r[6]==1):
@@ -53,11 +55,12 @@ def main():
             initialSize, rawImage = loadImg(runName, xlsDir)
             result = runcaffe(runName, parentDataDir,rawImage)
             gtIm = convertImage(gt_tool.createLabelImage(lastList, initialSize, (result.shape[0], result.shape[1])))
-            compareImages(result, gtIm)
+            compareImages(txtOut,runName, result, gtIm)
             lastList=[]
        else:
           lastList.append(r)
        lastname=r[2]
+    txtOut.close()
 
 def loadImg(name,dir):
   print name + '-----------'
@@ -75,7 +78,7 @@ def runcaffe (name, dataDir,im):
    transformer.set_mean('data', meanarr[0,:])
    transformer.set_transpose('data', (2,0,1))
    ## RGB -> BGR ?
-   #transformer.set_channel_swap('data', (2,1,0))
+   transformer.set_channel_swap('data', (2,1,0))
    transformer.set_raw_scale('data', 255.0)
    #net.blobs['data'].reshape(1,3,imageSizeCrop,imageSizeCrop)
    #out= forward_all(data=np.asarray([transformer.preprocess('data', im)]))
@@ -140,15 +143,15 @@ def vis_square(name, data, padsize=1, padval=0):
 def toImageArray(classPerPixel):
   maxValue = len(gt_tool.label_colors)+1
   ima = np.zeros((classPerPixel.shape[0], classPerPixel.shape[0], 3), dtype=np.uint8)
-  for i in range(0,ima.shape[0]-1):
-    for j in range(0,ima.shape[1]-1):
-        ima[i,j] = gt_tool.label_colors[classPerPixel[i,j]%maxValue]
+  for i in range(0,ima.shape[0]):
+    for j in range(0,ima.shape[1]):
+        if(classPerPixel[i,j]>0):
+          ima[i,j] = gt_tool.label_colors[(classPerPixel[i,j]-1)%maxValue]
   return ima
   
    
-
-def compareImages(im, gtIm):
-  print 'STAT ' + str(gt_tool.compareImages(im,gtIm))   
+def compareImages(fo,name, im, gtIm):
+  print fo.write('STAT ' + name + ' = ' + str(gt_tool.compareImages(im,gtIm)))
 
 def convertImage (im):
    tmp= np.array(im)
