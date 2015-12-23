@@ -127,7 +127,7 @@ def get_bkgd_patches( img, dims, exclusion_regions ):
 
 def write_files( train_percent ):
     file_set = set( files )
-    train_files = set([ x for x in files if random.random() < train_percent ])
+    train_files = set([ x for x in file_set if random.random() < train_percent ])
     test_files = file_set - train_files
     train = open( 'train.txt', 'w+' )
     for train_file in train_files:
@@ -194,14 +194,14 @@ def processXls( filename, parentDataDir ):
     # loop through backgrounds
     for fil in file_exclusion_regions.keys():
         bkgd_output_file_name = get_output_filename( fil, bkgd_mode_index, -1 )
-        if os.path.exists( bkgd_output_file_name ):
-            files.append( bkgd_output_file_name + " " + bkgd_mode_index )
-        else:
-            img = img_tools.open( fil )
-            bkgd_patch = get_bkgd_patch( img, defaultDim, file_exclusion_regions[fil] )
-            if bkgd_patch != img:
-                bkgd_patch.save( bkgd_output_file_name )
-                files.append( bkgd_output_file_name + " " + bkgd_mode_index )
+        img = img_tools.open( fil )
+        bkgd_patches = get_bkgd_patches( img, defaultDim, file_exclusion_regions[fil] )
+        for i in xrange(len(bkgd_patches)):
+            bkgd_patch = bkgd_patches[i]
+            new_bkgd_output_file_name = bkgd_output_file_name[:-4] + "_" + str(i) + bkgd_output_file_name[-4:]
+            if not os.path.exists( new_bkgd_output_file_name ):
+                bkgd_patch.save( new_bkgd_output_file_name )
+            files.append( new_bkgd_output_file_name + " " + bkgd_mode_index )
 
 def processAllXlsFiles( parentDataDir ):
     if parentDataDir[-1] != '/':
