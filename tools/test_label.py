@@ -36,9 +36,9 @@ def main():
 
     xlsInfos = gt_tool.loadXLSFiles(xlsDir)
 
-    parentDataDir = sys.argv[2]
-    if parentDataDir[-1] != '/':
-       parentDataDir += "/"
+    networkDataDir = sys.argv[2]
+    if networkDataDir[-1] != '/':
+       networkDataDir += "/"
 
     randUniform = random.seed(23361)
     gt_tool.setIsTest(xlsInfos,float(sys.argv[4]))
@@ -46,13 +46,16 @@ def main():
     lastList=[]
     lastname=''
 
+    net, transformer = loadNet(networkDataDir,sys.argv[3])
+    dumpNetWeights(net)
+
     txtOut = open('stats.txt','w');
     for i,r in xlsInfos.iterrows():
        if (lastname!= r[2] and len(lastList) > 0):
           if(r[6]==1):
             runName = lastname[0:lastname.index('.tif')]
             initialSize, rawImage = loadImg(runName, xlsDir)
-            result = runcaffe(runName, parentDataDir, sys.argv[3], rawImage)
+            result = runcaffe(runName, net, transformer, rawImage)
             gtIm = convertImage(gt_tool.createLabelImage(lastList, initialSize, (result.shape[0], result.shape[1])))
             compareImages(txtOut,runName, result, gtIm)
             lastList=[]
@@ -66,7 +69,7 @@ def loadImg(name,dir):
   initialSize,im = gt_tool.loadImage(dir + 'png/' + name + '.png')
   return initialSize, convertImage(im)
 
-def runcaffe (name, dataDir,modelName, im):
+def loadNet(dataDir,modelName):
    from caffe.proto import caffe_pb2
    blob = caffe_pb2.BlobProto()
    meandata = open(dataDir + 'train_mean.binaryproto', 'rb').read()
@@ -79,22 +82,25 @@ def runcaffe (name, dataDir,modelName, im):
    ## RGB -> BGR ?
    transformer.set_channel_swap('data', (2,1,0))
    transformer.set_raw_scale('data', 255.0)
-   #net.blobs['data'].reshape(1,3,imageSizeCrop,imageSizeCrop)
-   #out= forward_all(data=np.asarray([transformer.preprocess('data', im)]))
+   return net, transformer
+
+def runcaffe (name, net, transformer, im):
+   from caffe.proto import caffe_pb2
    net.blobs['data'].data[...] = transformer.preprocess('data', im)
-   dumpNetWeights(name, net)
    return outputResult(net.forward(), transformer, net.blobs['data'].data[0], name)
 
-def dumpNetWeights(name, net):
+def dumpNetWeights(net):
   for ll in net.blobs:
     try:
       filters = net.params[ll][0].data
-      vis_filter(name+'_'+ll, filters)
+      vis_filter(ll, filters)
     except:
       continue
 
 def outputResult(out, transformer, data, name):
   classPerPixel = out['prob'][0].argmax(axis=0)
+  print 'RANGE' + str(np.min(out['prob'][0])) + " to " str(np.max(out['prob'][0]))
+  print 'SHAPE ' + str(out['prob'][0])
   print 'HIST ' + str(np.histogram(classPerPixel))
   ima = transformer.deprocess('data', data)
   shapeIME =  (classPerPixel.shape[0],classPerPixel.shape[1])
@@ -107,8 +113,6 @@ def outputResult(out, transformer, data, name):
   imArray = toImageArray(classPerPixel);
   plt.imshow(imArray) 
 
- # plt.subplot(1, 3, 3)
- # plt.imshow(out('score')[0]) 
   plt.savefig(name+'_output')
   plt.close()
 
