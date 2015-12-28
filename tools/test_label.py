@@ -30,7 +30,6 @@ def main():
       print "Usage: ", sys.argv[0], " xlsDir dataDir percentInTestSet"
       sys.exit( 0 )
 
-
     xlsDir = sys.argv[1];
     if xlsDir[-1] != '/':
        xlsDir += "/"
@@ -47,7 +46,7 @@ def main():
     lastList=[]
     lastname=''
 
-    txtOut = open('log.txt','w');
+    txtOut = open('stats.txt','w');
     for i,r in xlsInfos.iterrows():
        if (lastname!= r[2] and len(lastList) > 0):
           if(r[6]==1):
@@ -151,7 +150,8 @@ def toImageArray(classPerPixel):
   
    
 def compareImages(fo,name, im, gtIm):
-  print fo.write('STAT ' + name + ' = ' + str(gt_tool.compareImages(im,gtIm)))
+  fo.write('STAT ' + name + ' = ' + str(gt_tool.compareImages(im,gtIm)))
+  fo.write('\n')
 
 def convertImage (im):
    tmp= np.array(im)
