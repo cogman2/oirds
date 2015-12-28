@@ -27,7 +27,7 @@ def main():
         from io import StringIO
 
     if len(sys.argv) < 3:
-      print "Usage: ", sys.argv[0], " xlsDir dataDir percentInTestSet"
+      print "Usage: ", sys.argv[0], " xlsDir dataDir modelName percentInTestSet"
       sys.exit( 0 )
 
     xlsDir = sys.argv[1];
@@ -41,7 +41,7 @@ def main():
        parentDataDir += "/"
 
     randUniform = random.seed(23361)
-    gt_tool.setIsTest(xlsInfos,float(sys.argv[3]))
+    gt_tool.setIsTest(xlsInfos,float(sys.argv[4]))
 
     lastList=[]
     lastname=''
@@ -52,7 +52,7 @@ def main():
           if(r[6]==1):
             runName = lastname[0:lastname.index('.tif')]
             initialSize, rawImage = loadImg(runName, xlsDir)
-            result = runcaffe(runName, parentDataDir,rawImage)
+            result = runcaffe(runName, parentDataDir, sys.argv[3], rawImage)
             gtIm = convertImage(gt_tool.createLabelImage(lastList, initialSize, (result.shape[0], result.shape[1])))
             compareImages(txtOut,runName, result, gtIm)
             lastList=[]
@@ -66,13 +66,13 @@ def loadImg(name,dir):
   initialSize,im = gt_tool.loadImage(dir + 'png/' + name + '.png')
   return initialSize, convertImage(im)
 
-def runcaffe (name, dataDir,im):
+def runcaffe (name, dataDir,modelName, im):
    from caffe.proto import caffe_pb2
    blob = caffe_pb2.BlobProto()
    meandata = open(dataDir + 'train_mean.binaryproto', 'rb').read()
    blob.ParseFromString(meandata)
    meanarr = np.array(caffe.io.blobproto_to_array(blob))
-   net = caffe.Net(dataDir + 'deploy.prototxt', dataDir + 'train_iter_8000.caffemodel', caffe.TEST)
+   net = caffe.Net(dataDir + 'deploy.prototxt', dataDir + modelName, caffe.TEST)
    transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
    transformer.set_mean('data', meanarr[0,:])
    transformer.set_transpose('data', (2,0,1))

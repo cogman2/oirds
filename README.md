@@ -48,7 +48,7 @@ F-CNN Work:
      4. /opt/fcn/caffe/build/tools/compute_image_mean raw_test test_mean.binaryproto
      5. /opt/fcn/caffe/build/tools/caffe train -solver fcn8_solver.prototxt -weights fcn-8s-pascalcontext.caffemodel -gpu 0
        -- the model comes from https://gist.github.com/longjon/1bf3aa1e0b8e788d7e1d#file-readme-md     
-     6. python test_label.py /data/oirds/ /data/oird_fcn 0.05
-       -- tests a random sample of images from the /data/oirds data set. The images are assumed to be in a directory called 'png'.  The second argument is the data directory containing the deploy.prototxt, the train_itet_8000.caffemodel (from step 5), the train_mean.binaryproto file.
+     6. python test_label.py /data/oirds/ /data/oird_fcn train_iter_8000.caffemodel 0.05
+       -- tests a random sample of images from the /data/oirds data set. The images are assumed to be in a directory called 'png'.  The second argument is the data directory containing the deploy.prototxt, the model(model name) (from step 5), and the train_mean.binaryproto file.
        -- This python routine dumps a stats.txt file containing tuples for each image: (x dim, y dim, false positive, false negative, true positive, true negative, wrong label, precision, recall, accuracy, f1).
        -- This python routine also dumps out a large amount of images for convolution weights, and an image for {image_name}_output.png showing the classification.
