@@ -1,7 +1,7 @@
 
 from PIL import Image
 
-label_colors = [(64,128,5),(192,0,1),(0,128,2),(0,128,3),(128,0,4)]
+label_colors = [(64,128,5),(192,0,1),(0,128,2),(0,128,3),(128,0,4),(56,100,6),(64.49,7)]
 hacked_color = (64,49,7)
 
 modes = ['VEHICLE/CAR','VEHICLE/PICK-UP','VEHICLE/TRUCK','VEHICLE/UNKNOWN','VEHICLE/VAN']
@@ -80,7 +80,7 @@ def createLabelImage(xlsInfoList, initialSize, finalSize):
   from shapely.wkt import dumps, loads
   from shapely.geometry import polygon
   from PIL import Image
-  imLabel = Image.new("RGB", finalSize)
+  imLabel = Image.new("RGB", finalSize, color=(0,0,0))
   for r in xlsInfoList:
     poly = r[polyIndex].replace("[",'(').replace("]","").replace(";",",")
     beg = poly[1:poly.index(',')]
@@ -89,6 +89,7 @@ def createLabelImage(xlsInfoList, initialSize, finalSize):
     polyObj = resizePoly(polyObj, initialSize, finalSize)
     try:
         placePolyInImage(imLabel, polyObj, label_colors[modeIndices[r[modeIndex]]])
+#hacked_color) 
     except:
         continue
   return imLabel
@@ -116,11 +117,12 @@ def compareImages(im, gtIm):
       fp += float(all(gtIm[i,j] == [0,0,0]) and any(im[i,j] != [0,0,0]))
       fn += float(any(gtIm[i,j] != [0,0,0]) and all(im[i,j] == [0,0,0]))
       wrongLabel += float(any(im[i,j] != [0,0,0]) and any(im[i,j] != gtIm[i,j]) and any(gtIm[i,j] != [0,0,0]))
-  if (tp == 0.0):
+  if (tp < 0.5):
     precision = 0.0
     recall = 0.0
+    f1 = 0.0
   else:
     precision=tp/(tp+fp)
     recall=tp/(tp+fn)
-  f1=2.0 * (precision*recall / (precision+recall))
+    f1=2.0 * (precision*recall / (precision+recall))
   return (im.shape[0], im.shape[1], fp, fn, tp, tn, wrongLabel, precision, recall,(tp+tn)/(tp+tn+fp+fn),f1)
