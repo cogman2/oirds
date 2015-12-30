@@ -21,9 +21,12 @@ def main():
         from io import StringIO
 
     if len(sys.argv) < 2:
-      print "Usage: ", sys.argv[0], " dataDir"
+      print "Usage: ", sys.argv[0], " dataDir [labelIndex]"
       sys.exit( 0 )
 
+    singleLabelIndex = -1
+    if (len(sys.argv) > 2):
+      singleLabelIndex = int(sys.argv[2])
 
     if (os.path.isdir("./png_gt")):
       shutil.rmtree("./png_gt")
@@ -60,7 +63,7 @@ def main():
      with out_db_test.begin(write=True) as ods_txn:
       with label_db_train.begin(write=True) as ldn_txn:
        with label_db_test.begin(write=True) as lds_txn:
-         writeOutImages(xlsInfo, parentDataDir, odn_txn, ods_txn, ldn_txn, lds_txn)
+         writeOutImages(xlsInfo, parentDataDir, odn_txn, ods_txn, ldn_txn, lds_txn, singleLabelIndex)
 
     out_db_train.close()
     label_db_train.close()
@@ -69,23 +72,23 @@ def main():
     sys.exit(0)
 
 
-def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn):
+def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn, singleLabelIndex):
     lastList=[]
     lastname=''
     test_idx = 0
     train_idx =0
     for i,r in xlsInfo.iterrows():
        if (lastname!= r[2] and len(lastList) > 0):
-           labelImage, rawImage = convertImg(lastname, lastList, parentDataDir)
+           labelImage, labelIndices, rawImage = convertImg(lastname, lastList, parentDataDir,singleLabelIndex)
            if (rawImage.size[0] < gt_tool.imageCropSize or rawImage.size[1] < gt_tool.imageCropSize):
                continue
            if (r[6]==1):
               outGT(rawImage, ods_txn, test_idx)
-              outGTLabel(labelImage, lds_txn, test_idx)
+              outGTLabel(labelIndices, lds_txn, test_idx)
               test_idx+=1
            else:
               outGT(rawImage, odn_txn, train_idx)
-              outGTLabel(labelImage, ldn_txn, train_idx)
+              outGTLabel(labelIndices, ldn_txn, train_idx)
               train_idx+=1
            labelImage.save("./png_gt/"+ lastname[0:lastname.index('.tif')] + ".png")
            rawImage.save("./png_raw/"+ lastname[0:lastname.index('.tif')] + ".png")
@@ -95,11 +98,11 @@ def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn):
            lastList.append(r)
        lastname=r[2]
 
-def convertImg(name,xlsInfoList, dir):
+def convertImg(name,xlsInfoList, dir, singleLabelIndex):
   print name + '-----------'
   initialSize, imRaw= gt_tool.loadImage(dir + 'png/' + name[0:name.index('.tif')] + '.png')
-  imLabel = gt_tool.createLabelImage(xlsInfoList, initialSize, imRaw.size)
-  return imLabel,imRaw
+  imLabel,indices = gt_tool.createLabelImage(xlsInfoList, initialSize, imRaw.size, singleLabelIndex)
+  return imLabel,indices,imRaw
    
 def outGT (im, out_txn, idx):
    import caffe
@@ -110,14 +113,10 @@ def outGT (im, out_txn, idx):
    im_dat = caffe.io.array_to_datum(tmp)
    out_txn.put('{:0>10d}'.format(idx), im_dat.SerializeToString())
 
-def outGTLabel (im, out_txn, idx):
+def outGTLabel (imArray, out_txn, idx):
    import caffe
    import numpy as np
-   tmp = np.array(im)
-   # choose the last index, as it is the class number (B channel)
-   tmp = tmp[:,:,2:3:1]
-   tmp = tmp.transpose((2,0,1))
-   im_dat = caffe.io.array_to_datum(tmp)
+   im_dat = caffe.io.array_to_datum(imArray)
    out_txn.put('{:0>10d}'.format(idx), im_dat.SerializeToString())
 
 if __name__=="__main__":

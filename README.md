@@ -41,14 +41,14 @@ Changed import order/statement prior to import of cafee:
 
 
 F-CNN Work:
-     1. Convert images to png files.  Place in png directory with top level Data Set.
-     2. python  label_image.py /data/oirds
+     1. Convert images to png files.  Place in png directory with top level Data Set.  Last argument is the fixed label index for cars.
+     2. python  label_image.py /data/oirds 7
        -- creates label and data LMDB files (raw_train, raw_test, groundtruth_train, groundtruth_test)
      3. /opt/fcn/caffe/build/tools/compute_image_mean raw_train train_mean.binaryproto
      4. /opt/fcn/caffe/build/tools/compute_image_mean raw_test test_mean.binaryproto
      5. /opt/fcn/caffe/build/tools/caffe train -solver fcn8_solver.prototxt -weights fcn-8s-pascalcontext.caffemodel -gpu 0
        -- the model comes from https://gist.github.com/longjon/1bf3aa1e0b8e788d7e1d#file-readme-md     
-     6. python test_label.py /data/oirds/ /data/oird_fcn train_iter_8000.caffemodel 0.05
+     6. python test_label.py /data/oirds/ /data/oird_fcn train_iter_8000.caffemodel 0.05 7
        -- tests a random sample of images from the /data/oirds data set. The images are assumed to be in a directory called 'png'.  The second argument is the data directory containing the deploy.prototxt, the model(model name) (from step 5), and the train_mean.binaryproto file.
        -- This python routine dumps a stats.txt file containing tuples for each image: (x dim, y dim, false positive, false negative, true positive, true negative, wrong label, precision, recall, accuracy, f1).
        -- This python routine also dumps out a large amount of images for convolution weights, and an image for {image_name}_output.png showing the classification.
