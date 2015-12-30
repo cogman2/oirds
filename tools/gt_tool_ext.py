@@ -7,6 +7,7 @@ hacked_color = (64,49,7)
 modes = ['VEHICLE/CAR','VEHICLE/PICK-UP','VEHICLE/TRUCK','VEHICLE/UNKNOWN','VEHICLE/VAN']
 modeIndices = dict( zip( modes, [int(x) for x in range( len(modes) )] ) )
 imageCropSize=128
+results_labels = ['Shape_1', 'Shape_2', 'fp', 'fn', 'tp', 'tn', 'wrongLabel', 'precision', 'recall','total_accuracy','f1']
 
 
 # 1, 2, 3 = "Image Path", "Image Name", "Target Number"
@@ -115,6 +116,9 @@ def compareImages(im, gtIm):
       tp += float(all(im[i,j] == gtIm[i,j]) and any(gtIm[i,j] != [0,0,0]))
       fp += float(all(gtIm[i,j] == [0,0,0]) and any(im[i,j] != [0,0,0]))
       fn += float(any(gtIm[i,j] != [0,0,0]) and all(im[i,j] == [0,0,0]))
+#      
+# How does this work?????
+#      
       wrongLabel += float(any(im[i,j] != [0,0,0]) and any(im[i,j] != gtIm[i,j]) and any(gtIm[i,j] != [0,0,0]))
   if (tp == 0.0):
     precision = 0.0
@@ -124,3 +128,16 @@ def compareImages(im, gtIm):
     recall=tp/(tp+fn)
   f1=2.0 * (precision*recall / (precision+recall))
   return (im.shape[0], im.shape[1], fp, fn, tp, tn, wrongLabel, precision, recall,(tp+tn)/(tp+tn+fp+fn),f1)
+
+def computeAccuracy(imList,gtImList):
+    import pandas as pd
+    # begin pseudo-code
+    results = pd.DataFrame(index=imList,columns=results_labels)
+    for i, img in enumerate(imList):
+        results.append(compareImages(imList[i],gtImList[i]))
+    return results        
+        
+        
+        
+
+    
