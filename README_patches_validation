@@ -1,0 +1,46 @@
+# process log files
+import caffe_log_tools
+import glob
+
+accuracy,loss,time = caffe_log_tools.parse_output_files( glob.glob('*.log') )
+for a in accuracy:
+    if a[0] == 100000:
+            print a
+            break
+
+# NOTE: used snapshot time stamps to get time information
+
+
+
+import loader
+loader.init_gpu()
+model = 'caffenet_train_iter_100000.caffemodel'
+net = loader.get_net( 'deploy.prototxt' , model )
+val = loader.get_validation( net, '../test.txt', 'train_mean.binaryproto' )
+loader.save_validation( 'validation.dat', val )
+
+
+# validation values
+# accuracy
+echo "("`cat validation.dat | awk '( ($2 == $3) && ($2 == 0))' | wc -l`"+"`cat validation.dat | awk '( ($2 != 0) && ($3 != 0))' | wc -l`")/"`cat validation.dat  | wc -l` | bc -l
+echo "("`cat validation.dat | awk '( ($2 == $3) && ($2 == 1))' | wc -l`"+"`cat validation.dat | awk '( ($2 != 1) && ($3 != 1))' | wc -l`")/"`cat validation.dat  | wc -l` | bc -l
+echo "("`cat validation.dat | awk '( ($2 == $3) && ($2 == 2))' | wc -l`"+"`cat validation.dat | awk '( ($2 != 2) && ($3 != 2))' | wc -l`")/"`cat validation.dat  | wc -l` | bc -l
+echo "("`cat validation.dat | awk '( ($2 == $3) && ($2 == 3))' | wc -l`"+"`cat validation.dat | awk '( ($2 != 3) && ($3 != 3))' | wc -l`")/"`cat validation.dat  | wc -l` | bc -l
+echo "("`cat validation.dat | awk '( ($2 == $3) && ($2 == 4))' | wc -l`"+"`cat validation.dat | awk '( ($2 != 4) && ($3 != 4))' | wc -l`")/"`cat validation.dat  | wc -l` | bc -l
+echo "("`cat validation.dat | awk '( ($2 == $3) && ($2 == 5))' | wc -l`"+"`cat validation.dat | awk '( ($2 != 5) && ($3 != 5))' | wc -l`")/"`cat validation.dat  | wc -l` | bc -l
+
+# precision
+echo `cat validation.dat | awk '( ($2 == $3) && ($2 == 0))' | wc -l`"/"`cat validation.dat | awk '($3 == 0)' | wc -l` | bc -l
+echo `cat validation.dat | awk '( ($2 == $3) && ($2 == 1))' | wc -l`"/"`cat validation.dat | awk '($3 == 1)' | wc -l` | bc -l
+echo `cat validation.dat | awk '( ($2 == $3) && ($2 == 2))' | wc -l`"/"`cat validation.dat | awk '($3 == 2)' | wc -l` | bc -l
+echo `cat validation.dat | awk '( ($2 == $3) && ($2 == 3))' | wc -l`"/"`cat validation.dat | awk '($3 == 3)' | wc -l` | bc -l
+echo `cat validation.dat | awk '( ($2 == $3) && ($2 == 4))' | wc -l`"/"`cat validation.dat | awk '($3 == 4)' | wc -l` | bc -l
+echo `cat validation.dat | awk '( ($2 == $3) && ($2 == 5))' | wc -l`"/"`cat validation.dat | awk '($3 == 5)' | wc -l` | bc -l
+
+# recall
+echo "1.0/(1+"`cat validation.dat | awk '( ($2 != $3) && ($2 == 0))' | wc -l`"/"`cat validation.dat | awk '( ($2 == $3) && ($2 == 0))' | wc -l`")" | bc -l
+echo "1.0/(1+"`cat validation.dat | awk '( ($2 != $3) && ($2 == 1))' | wc -l`"/"`cat validation.dat | awk '( ($2 == $3) && ($2 == 1))' | wc -l`")" | bc -l
+echo "1.0/(1+"`cat validation.dat | awk '( ($2 != $3) && ($2 == 2))' | wc -l`"/"`cat validation.dat | awk '( ($2 == $3) && ($2 == 2))' | wc -l`")" | bc -l
+echo "1.0/(1+"`cat validation.dat | awk '( ($2 != $3) && ($2 == 3))' | wc -l`"/"`cat validation.dat | awk '( ($2 == $3) && ($2 == 3))' | wc -l`")" | bc -l
+echo "1.0/(1+"`cat validation.dat | awk '( ($2 != $3) && ($2 == 4))' | wc -l`"/"`cat validation.dat | awk '( ($2 == $3) && ($2 == 4))' | wc -l`")" | bc -l
+echo "1.0/(1+"`cat validation.dat | awk '( ($2 != $3) && ($2 == 5))' | wc -l`"/"`cat validation.dat | awk '( ($2 == $3) && ($2 == 5))' | wc -l`")" | bc -l
