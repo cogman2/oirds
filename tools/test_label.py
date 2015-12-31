@@ -26,19 +26,24 @@ def main():
     else:
         from io import StringIO
 
-    if len(sys.argv) < 3:
-      print "Usage: ", sys.argv[0], " xlsDir dataDir modelName percentInTestSet"
+    if len(sys.argv) < 5:
+      print "Usage: ", sys.argv[0], " xlsDir dataDir modelName percentInTestSet [labelIndex]"
       sys.exit( 0 )
 
     xlsDir = sys.argv[1];
     if xlsDir[-1] != '/':
        xlsDir += "/"
 
+    singleLabel = -1
+    if (len(sys.argv) > 5):
+      singleLabel = int(sys.argv[5])
+
+
     xlsInfos = gt_tool.loadXLSFiles(xlsDir)
 
-    parentDataDir = sys.argv[2]
-    if parentDataDir[-1] != '/':
-       parentDataDir += "/"
+    networkDataDir = sys.argv[2]
+    if networkDataDir[-1] != '/':
+       networkDataDir += "/"
 
     randUniform = random.seed(23361)
     gt_tool.setIsTest(xlsInfos,float(sys.argv[4]))
@@ -46,27 +51,60 @@ def main():
     lastList=[]
     lastname=''
 
+    net, transformer = loadNet(networkDataDir,sys.argv[3])
+    dumpNetWeights(net)
+
     txtOut = open('stats.txt','w');
     for i,r in xlsInfos.iterrows():
        if (lastname!= r[2] and len(lastList) > 0):
           if(r[6]==1):
             runName = lastname[0:lastname.index('.tif')]
             initialSize, rawImage = loadImg(runName, xlsDir)
-            result = runcaffe(runName, parentDataDir, sys.argv[3], rawImage)
-            gtIm = convertImage(gt_tool.createLabelImage(lastList, initialSize, (result.shape[0], result.shape[1])))
-            compareImages(txtOut,runName, result, gtIm)
-            lastList=[]
+            result = runcaffe(runName, net, transformer, rawImage)
+            gtIm, gtIndex = gt_tool.createLabelImage(lastList, initialSize, (result.shape[0], result.shape[1]), singleLabel)
+            compareResults(txtOut,runName, result, gtIndex)
+          lastList=[]
        else:
           lastList.append(r)
        lastname=r[2]
     txtOut.close()
 
-def loadImg(name,dir):
-  print name + '-----------'
-  initialSize,im = gt_tool.loadImage(dir + 'png/' + name + '.png')
-  return initialSize, convertImage(im)
+# make a bilinear interpolation kernel
+# credit @longjon
+def upsample_filt(size):
+    factor = (size + 1) // 2
+    if size % 2 == 1:
+        center = factor - 1
+    else:
+        center = factor - 0.5
+    og = np.ogrid[:size, :size]
+    return (1 - abs(og[0] - center) / factor) * \
+           (1 - abs(og[1] - center) / factor)
 
-def runcaffe (name, dataDir,modelName, im):
+# set parameters s.t. deconvolutional layers compute bilinear interpolation
+# N.B. this is for deconvolution without groups
+def interp_surgery(net, layers):
+    for l in layers:
+        m, k, h, w = net.params[l][0].data.shape
+        if m != k:
+            print 'input + output channels need to be the same'
+            raise
+        if h != w:
+            print 'filters need to be square'
+            raise
+        filt = upsample_filt(h)
+        net.params[l][0].data[range(m), range(k), :, :] = filt
+
+
+def loadImg(name,dir):
+   from PIL import Image
+   print name + '-----------'
+   imRaw = Image.open(dir+'png/'+name +'.png')
+   initialSize = imRaw.size
+#  initialSize,im = gt_tool.loadImage(dir + 'png/' + name + '.png')
+   return initialSize, convertImage(gt_tool.resizeImg(imRaw))
+
+def loadNet(dataDir,modelName):
    from caffe.proto import caffe_pb2
    blob = caffe_pb2.BlobProto()
    meandata = open(dataDir + 'train_mean.binaryproto', 'rb').read()
@@ -79,40 +117,47 @@ def runcaffe (name, dataDir,modelName, im):
    ## RGB -> BGR ?
    transformer.set_channel_swap('data', (2,1,0))
    transformer.set_raw_scale('data', 255.0)
-   #net.blobs['data'].reshape(1,3,imageSizeCrop,imageSizeCrop)
-   #out= forward_all(data=np.asarray([transformer.preprocess('data', im)]))
-   net.blobs['data'].data[...] = transformer.preprocess('data', im)
-   dumpNetWeights(name, net)
-   return outputResult(net.forward(), transformer, net.blobs['data'].data[0], name)
 
-def dumpNetWeights(name, net):
+   interp_layers = [k for k in net.params.keys() if 'up' in k]
+   interp_surgery(net, interp_layers)
+   return net, transformer
+
+def runcaffe (name, net, transformer, im):
+   from caffe.proto import caffe_pb2
+   net.blobs['data'].data[...] = transformer.preprocess('data', im)
+   return outputResult(net.forward(), transformer, net.blobs['data'].data[0],im, name)
+
+def dumpNetWeights(net):
   for ll in net.blobs:
     try:
       filters = net.params[ll][0].data
-      vis_filter(name+'_'+ll, filters)
+      vis_filter(ll, filters)
     except:
       continue
 
-def outputResult(out, transformer, data, name):
+def outputResult(out, transformer, data, rawImage, name):
   classPerPixel = out['prob'][0].argmax(axis=0)
+  print 'RANGE ' + str(np.min(out['prob'][0])) + " to " + str(np.max(out['prob'][0]))
+  print 'SHAPE ' + str(out['prob'][0].shape)
   print 'HIST ' + str(np.histogram(classPerPixel))
   ima = transformer.deprocess('data', data)
   shapeIME =  (classPerPixel.shape[0],classPerPixel.shape[1])
   # print out['prob'][0].argmax(axis=1)
   # print out['prob'][0].argmax(axis=2)
-  plt.subplot(1, 2, 1)
+  plt.subplot(1, 3, 1)
+  plt.imshow(rawImage)
+
+  plt.subplot(1, 3, 2)
   plt.imshow(ima)
 
-  plt.subplot(1, 2, 2)
+  plt.subplot(1, 3, 3)
   imArray = toImageArray(classPerPixel);
   plt.imshow(imArray) 
 
- # plt.subplot(1, 3, 3)
- # plt.imshow(out('score')[0]) 
   plt.savefig(name+'_output')
   plt.close()
 
-  return imArray
+  return classPerPixel
 
 def vis_filter(name, data, padsize=1, padval=0):
   wc = data.shape[0]/64;
@@ -140,17 +185,17 @@ def vis_square(name, data, padsize=1, padval=0):
     plt.close()
 
 def toImageArray(classPerPixel):
-  maxValue = len(gt_tool.label_colors)+1
+  maxValue = len(gt_tool.label_colors)
   ima = np.zeros((classPerPixel.shape[0], classPerPixel.shape[0], 3), dtype=np.uint8)
   for i in range(0,ima.shape[0]):
     for j in range(0,ima.shape[1]):
-        if(classPerPixel[i,j]>0):
-          ima[i,j] = gt_tool.label_colors[(classPerPixel[i,j]-1)%maxValue]
+        if(classPerPixel[i,j]>0 and classPerPixel[i,j]<maxValue):
+          ima[i,j] = gt_tool.label_colors[(classPerPixel[i,j]-1)]
   return ima
   
    
-def compareImages(fo,name, im, gtIm):
-  fo.write('STAT ' + name + ' = ' + str(gt_tool.compareImages(im,gtIm)))
+def compareResults(fo,name, result, gt):
+  fo.write('STAT ' + name + ' = ' + str(gt_tool.compareResults(result, gt[0])))
   fo.write('\n')
 
 def convertImage (im):
