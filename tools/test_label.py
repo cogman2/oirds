@@ -46,7 +46,7 @@ def main():
        networkDataDir += "/"
 
     randUniform = random.seed(23361)
-    gt_tool.setIsTest(xlsInfos,float(sys.argv[4]))
+    testNames = gt_tool.getTestNames(xlsInfos,float(sys.argv[4]))
 
     lastList=[]
     lastname=''
@@ -57,12 +57,12 @@ def main():
     txtOut = open('stats.txt','w');
     for i,r in xlsInfos.iterrows():
        if (lastname!= r[2] and len(lastList) > 0):
-          if(r[6]==1):
-            runName = lastname[0:lastname.index('.tif')]
-            initialSize, rawImage = loadImg(runName, xlsDir)
-            result = runcaffe(runName, net, transformer, rawImage)
-            gtIm, gtIndex = gt_tool.createLabelImage(lastList, initialSize, (result.shape[0], result.shape[1]), singleLabel)
-            compareResults(txtOut,runName, result, gtIndex)
+          if(lastname in testNames):
+             runName = lastname[0:lastname.index('.tif')]
+             initialSize, rawImage = loadImg(runName, xlsDir)
+             result = runcaffe(runName, net, transformer, rawImage)
+             gtIm, gtIndex = gt_tool.createLabelImageGivenSize(lastList, initialSize, (result.shape[0], result.shape[1]), singleLabel)
+             compareResults(txtOut,runName, result, gtIndex)
           lastList=[]
        else:
           lastList.append(r)
@@ -190,7 +190,7 @@ def toImageArray(classPerPixel):
   for i in range(0,ima.shape[0]):
     for j in range(0,ima.shape[1]):
         if(classPerPixel[i,j]>0 and classPerPixel[i,j]<maxValue):
-          ima[i,j] = gt_tool.label_colors[(classPerPixel[i,j]-1)]
+          ima[i,j] = gt_tool.label_colors[classPerPixel[i,j]]
   return ima
   
    

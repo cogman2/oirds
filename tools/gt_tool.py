@@ -37,8 +37,9 @@ def loadXLSFiles(parentDataDir):
 
     return xlsInfo
 
-def setIsTest(xlsInfo, percent):
+def getTestNames(xlsInfo, percent):
     import numpy as np
+    testNames= set()
     labelCounts = [0 for i in xrange(len(label_colors))]
     for i,r in xlsInfo.iterrows():  
        labelCounts[modeIndices[r[modeIndex]]] += 1
@@ -46,8 +47,9 @@ def setIsTest(xlsInfo, percent):
       labelCounts[i] = int(labelCounts[i]*percent)
     for i in np.random.permutation(len(xlsInfo)):
        if(labelCounts[modeIndices[xlsInfo.iloc[i,modeIndex]]] > 0):
-         xlsInfo.loc[i,'isTest']=1
+         testNames.add(xlsInfo.iloc[i,nameIndex])
          labelCounts[modeIndices[xlsInfo.iloc[i,modeIndex]]] -= 1
+    return testNames
 
 def loadImage(name):
    from PIL import Image
@@ -75,25 +77,60 @@ def resizePoly(poly, initialSize, finalSize):
    hpercent = (finalSize[1]/float(initialSize[1]))
    return transform(lambda x, y, z=None: (x*wpercent,y*hpercent), poly)
 
-def createLabelImage(xlsInfoList, initialSize, finalSize, singleLabelIndex):
-  from shapely.wkt import dumps, loads
-  from shapely.geometry import polygon
-  from PIL import Image
+def getPolysForImage(xlsInfoList, initialSize, finalSize, singleLabelIndex): 
+   from shapely.wkt import dumps, loads
+   from shapely.geometry import polygon
+   polyList=list()
+   for r in xlsInfoList:
+     poly = r[polyIndex].replace("[",'(').replace("]","").replace(";",",")
+     beg = poly[1:poly.index(',')]
+     poly = 'POLYGON (' + poly + ',' + beg + '))'
+     polyObj = loads(poly)
+     polyObj = resizePoly(polyObj, initialSize, finalSize)
+     conlorIndex = modeIndices[r[modeIndex]]
+     if (singleLabelIndex>=0):
+        colorIndex= singleLabelIndex
+     polyList.append((polyObj,colorIndex))
+   return polyList
+
+def createLabelImageGivenSize(xlsInfoList, initialSize, finalSize, singleLabelIndex):
+   polyList  = getPolysForImage(xlsInfoList, initialSize,finalSize, singleLabelIndex)
+   return placePolysInImage(polyList,finalSize)
+
+def createLabelImage(xlsInfoList, initialSize, inputImg, singleLabelIndex, augment):
+   polyList  = getPolysForImage(xlsInfoList, initialSize, inputImg.size, singleLabelIndex)
+   if (augment):
+     newPolyList = list()
+     newImage = inputImg
+     while(len(newPolyList)==0):
+        newImage, newPolyList = augmentImage(inputImg,polyList)
+     return newImage, placePolysInImage(newPolyList, inputImg.size)
+   return inputImg, placePolysInImage(polyList, inputImg.size)
+
+imageTransforms = [Image.ROTATE_90, Image.ROTATE_180, Image.ROTATE_270]
+polyTransforms = [90, 180, -90]
+
+def augmentImage(inputImg, polyList):
+   import numpy as np
+   delta=0.1 + (0.8 * np.random.ranf([1])[0])
+   newPolyList=rollPoly(polyList, inputImg.size, delta)
+   ##newPolyList= polyList
+   newImage = inputImg
+   if (len(newPolyList) > 0):
+      newImage = rollImage(inputImg, delta)
+      rotate = np.random.randint(0,3)
+      newImage = newImage.transpose(imageTransforms[rotate]);
+      newPolyList=rotatePoly(newPolyList, polyTransforms[rotate], (inputImg.size[0]/2, inputImg.size[1]/2))
+   return newImage, newPolyList
+    
+
+def placePolysInImage(polyList, finalSize):
   import numpy as np
   imLabel = Image.new("RGB", finalSize, color=(0,0,0))
   indices = np.zeros((1,finalSize[0],finalSize[1]),dtype=np.uint8)
-  for r in xlsInfoList:
-    poly = r[polyIndex].replace("[",'(').replace("]","").replace(";",",")
-    beg = poly[1:poly.index(',')]
-    poly = 'POLYGON (' + poly + ',' + beg + '))'
-    polyObj = loads(poly)
-    polyObj = resizePoly(polyObj, initialSize, finalSize)
-    conlorIndex = modeIndices[r[modeIndex]]
-    if (singleLabelIndex>=0):
-      colorIndex= singleLabelIndex
+  for polyObjTuple in polyList:
     try:
-        placePolyInImage(imLabel, polyObj, indices, colorIndex)
-#hacked_color) 
+        placePolyInImage(imLabel, polyObjTuple[0], indices, polyObjTuple[1])
     except:
         continue
   return imLabel, indices
@@ -107,6 +144,41 @@ def placePolyInImage(img, poly, indices, colorIndex):
        if poly.contains(Point(x, y)):
           img.putpixel((x, y), label_colors[colorIndex])
           indices[0,x,y]=colorIndex
+
+def rotatePoly(polyList, angle, centroid):
+    from shapely import affinity
+    newPolyList = list()
+    for polyTuple in polyList: 
+       newPolyList.append((affinity.rotate(polyTuple[0], angle, origin=centroid), polyTuple[1]))
+    return polyList
+
+def rollPoly(polyList, sizes, delta):
+    from shapely import affinity
+    xsize, ysize = sizes
+    xsize = int(delta * xsize)
+    newPolyList = list()
+    for polyTuple in polyList: 
+      bounds = polyTuple[0].bounds
+      if (bounds[2] < xsize):
+         newPolyList.append((affinity.translate(polyTuple[0],xoff=xsize, yoff=0.0, zoff=0.0), polyTuple[1]))
+      elif (bounds[0] > xsize):
+         newPolyList.append((affinity.translate(polyTuple[0],xoff=-xsize, yoff=0.0, zoff=0.0),polyTuple[1]))
+      else:
+         return list()
+    return newPolyList
+
+
+def rollImage(image, delta):
+    "Roll an image sideways"
+
+    xsize, ysize = image.size
+    splitX = int(xsize * delta)
+    partL = image.crop((0, 0, splitX, ysize))
+    partR = image.crop((splitX, 0, xsize, ysize))
+    image.paste(partR, (0, 0, xsize-splitX, ysize))
+    image.paste(partL, (xsize-splitX, 0, xsize, ysize))
+
+    return image
 
 def compareResults(result, gt):
   fp=0.0

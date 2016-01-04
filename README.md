@@ -42,7 +42,7 @@ Changed import order/statement prior to import of cafee:
 
 F-CNN Work:
      1. Convert images to png files.  Place in png directory with top level Data Set.  Last argument is the fixed label index for cars.
-     2. python  label_image.py /data/oirds 7
+     2. python  label_image.py /data/oirds 1 7
        -- creates label and data LMDB files (raw_train, raw_test, groundtruth_train, groundtruth_test)
      3. /opt/fcn/caffe/build/tools/compute_image_mean raw_train train_mean.binaryproto
      4. /opt/fcn/caffe/build/tools/compute_image_mean raw_test test_mean.binaryproto
