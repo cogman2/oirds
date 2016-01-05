@@ -107,22 +107,65 @@ def createLabelImage(xlsInfoList, initialSize, inputImg, singleLabelIndex, augme
      return newImage, placePolysInImage(newPolyList, inputImg.size)
    return inputImg, placePolysInImage(polyList, inputImg.size)
 
-imageTransforms = [Image.ROTATE_90, Image.ROTATE_180, Image.ROTATE_270]
-polyTransforms = [90, 180, -90]
-
 def augmentImage(inputImg, polyList):
    import numpy as np
-   delta=0.1 + (0.8 * np.random.ranf([1])[0])
-   newPolyList=rollPoly(polyList, inputImg.size, delta)
-   ##newPolyList= polyList
-   newImage = inputImg
-   if (len(newPolyList) > 0):
-      newImage = rollImage(inputImg, delta)
-      rotate = np.random.randint(0,3)
-      newImage = newImage.transpose(imageTransforms[rotate]);
-      newPolyList=rotatePoly(newPolyList, polyTransforms[rotate], (inputImg.size[0]/2, inputImg.size[1]/2))
-   return newImage, newPolyList
-    
+   newImg = inputImg
+   newPolyList = list()
+   for polyObjTuple in polyList:
+     while True:
+       xwidth = polyObjTuple[0].bounds[2] - polyObjTuple[0].bounds[0]
+       ywidth = polyObjTuple[0].bounds[3] - polyObjTuple[0].bounds[1]
+       randXPixel = np.random.randint(0,inputImg.size[0])+1
+       randYPixel = np.random.randint(0,inputImg.size[1])+1
+       deltaX = int(randXPixel - polyObjTuple[0].bounds[0])
+       deltaY = int(randYPixel - polyObjTuple[0].bounds[1])
+       if (deltaX < 0): 
+         deltaX = min(deltaX,-xwidth-1)
+       else:
+         deltaX = max(deltaX,xwidth+1)
+  
+       if (deltaY < 0): 
+         deltaY = min(deltaY,-ywidth-1)
+       else:
+         deltaY = max(deltaY,ywidth+1)
+
+       if (deltaX + polyObjTuple[0].bounds[0] < 1):
+         deltaX = -polyObjTuple[0].bounds[0] + 1;
+       if (deltaX + polyObjTuple[0].bounds[0] > inputImg.size[0]-1):
+         deltaX = inputImg.size[0]-polyObjTuple[0].bounds[0]-1;
+
+       if (deltaY + polyObjTuple[0].bounds[1] < 1):
+         deltaY = -polyObjTuple[0].bounds[1] + 1;
+       if (deltaY + polyObjTuple[0].bounds[1] > inputImg.size[1]-1):
+         deltaY = inputImg.size[1]-polyObjTuple[0].bounds[1]-1;
+
+       if (movePoly(polyObjTuple, deltaX, deltaY, newPolyList)):
+          newImg = moveImageBlock(newImg, polyObjTuple[0], deltaX, deltaY)
+          break
+   return newImg, newPolyList
+
+def moveImageBlock(image, poly, deltaX, deltaY):
+    import numpy as np
+    newImage = image.copy()
+    newBounds = (int(np.floor(poly.bounds[0])+deltaX), \
+                 int(np.floor(poly.bounds[1])+deltaY), \
+                 int(np.ceil(poly.bounds[2])+deltaX), \
+                 int(np.ceil(poly.bounds[3])+deltaY))
+    oldBounds = (int(np.floor(poly.bounds[0])),int(np.floor(poly.bounds[1])),int(np.ceil(poly.bounds[2])),int(np.ceil(poly.bounds[3])))
+    partL = image.crop(oldBounds)
+    partR = image.crop(newBounds)
+    newImage.paste(partR, oldBounds)
+    newImage.paste(partL, newBounds)
+    return newImage
+  
+def movePoly(polyObjTuple, deltaX, deltaY, newPolyList):
+    from shapely import affinity
+    translatedPoly = affinity.translate(polyObjTuple[0],deltaX, deltaY)
+    for newPolyTuple in newPolyList:
+      if (newPolyTuple[0].intersects(translatedPoly)):
+        return False
+    newPolyList.append((translatedPoly, polyObjTuple[1]))
+    return True
 
 def placePolysInImage(polyList, finalSize):
   import numpy as np
