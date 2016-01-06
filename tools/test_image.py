@@ -18,30 +18,30 @@ def main():
     import random
     import pandas as pd
     import sys
+    import json_tools
     if sys.version_info[0] < 3:
         from StringIO import StringIO
     else:
         from io import StringIO
 
-    if len(sys.argv) < 3:
-      print "Usage: ", sys.argv[0], "image dataDir modelName "
+    if len(sys.argv) < 2:
+      print "Usage: ", sys.argv[0], "image config"
       sys.exit( 0 )
 
-    networkDataDir = sys.argv[2]
-    if networkDataDir[-1] != '/':
-       networkDataDir += "/"
+    config = json_tools.loadConfig(sys.argv[2])
 
-    net, transformer = net_tool.loadNet(networkDataDir,sys.argv[3], 128)
+    im = loadImgArray(sys.argv[1], config);
 
-    im = loadImg(sys.argv[1]);
+    net, transformer = net_tool.loadNet(config, im.shape)
+
     result = net_tool.runcaffe(net, transformer, im)
     outputResult(result[0], transformer, result[1], im)
 
-def loadImg(name):
+def loadImgArray(name, config):
    from PIL import Image
    print name + '-----------'
-   imRaw = Image.open(name)
-   return net_tool.convertImage(gt_tool.resizeImg(imRaw))
+   initialiSize, imRaw = gt_tool.loadImage(name, config)
+   return net_tool.convertImage(imRaw)
 
 def outputResult(out, transformer, data, rawImage):
   layrName = 'score'

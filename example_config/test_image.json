@@ -1,0 +1,7 @@
+{
+   "modelFileName": "/data/oird_fcn/fcn-8s-pascalcontext.caffemodel",
+   "dataDirectory": "/data/oird_fcn",
+   "meanarray": [105.00699,116.66877,122.67892],
+   "prototxt": "/data/oird_fcn/deploy.prototxt",
+   "netsurgery": true
+}

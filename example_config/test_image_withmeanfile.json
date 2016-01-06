@@ -1,0 +1,7 @@
+{
+   "modelFileName": "/data/oird_fcn/fcn-8s-pascalcontext.caffemodel",
+   "meanproto": "/data/oird_fcn/60label/train_mean.binaryproto",
+   "prototxt": "/data/oird_fcn/60label/deploy.prototxt",
+   "netsurgery": true,
+   "resize" :  128.0
+}

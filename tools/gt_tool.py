@@ -5,7 +5,6 @@ label_colors = [(0,0,0),(228,100,27),(182,228,27),(27,228,140),(27,73,228),(216,
 modes = ['BACKGROUND','VEHICLE/CAR','VEHICLE/PICK-UP','VEHICLE/TRUCK','VEHICLE/UNKNOWN','VEHICLE/VAN','NA','VEHICAL/ANY']
 modeIndices = dict( zip( modes, [int(x) for x in range( len(modes) )] ) )
 colorIndices = dict( zip( label_colors, [int(x) for x in range( len(label_colors) )] ) )
-imageCropSize=128
 
 
 # 1, 2, 3 = "Image Path", "Image Name", "Target Number"
@@ -51,11 +50,13 @@ def getTestNames(xlsInfo, percent):
          labelCounts[modeIndices[xlsInfo.iloc[i,modeIndex]]] -= 1
     return testNames
 
-def loadImage(name):
+def loadImage(name, config):
    from PIL import Image
+   import json_tools
    imRaw = Image.open(name)
    initialSize = imRaw.size
-   imRaw = resizeImg(imRaw)
+   if (json_tools.isResize(config)):
+     imRaw = resizeImg(imRaw, json_tools.getResize(config))
    return initialSize, imRaw
 
 def createLabelImageFor(name, xlsInfo, initialSize, finalSize,singleLabelIndex):
@@ -65,7 +66,7 @@ def createLabelImageFor(name, xlsInfo, initialSize, finalSize,singleLabelIndex):
          lastList.append(r)
     return createLabelImage(lastList, initialSize, finalSize, singleLabelIndex)
 
-def resizeImg(im):
+def resizeImg(im, imageCropSize):
    wpercent = (imageCropSize/float(im.size[0]))
    hsize = int((float(im.size[1])*float(wpercent)))
    return im.resize((imageCropSize ,hsize),Image.ANTIALIAS).crop((0,0,imageCropSize, imageCropSize))

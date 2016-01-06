@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # Used to build the training images for a labeled data set.
-# each training image is white.  The polygons representing each label
+# each training image is black (0,0,0).  The polygons representing each label
 # has an assigned color in the image.
 
 import gt_tool
@@ -8,6 +8,7 @@ import matplotlib
 matplotlib.use('Agg') 
 import lmdb
 from PIL import Image
+import json_tools
 
 def main():
     import os
@@ -20,14 +21,9 @@ def main():
     else:
         from io import StringIO
 
-    if len(sys.argv) < 3:
-      print "Usage: ", sys.argv[0], " dataDir multiplicationFactor [labelIndex]"
+    if len(sys.argv) < 1:
+      print "Usage: ", sys.argv[0], " config "
       sys.exit( 0 )
-
-    multiplicationFactor = int(sys.argv[2])
-    singleLabelIndex = -1
-    if (len(sys.argv) > 2):
-      singleLabelIndex = int(sys.argv[3])
 
     if (os.path.isdir("./png_gt")):
       shutil.rmtree("./png_gt")
@@ -45,9 +41,9 @@ def main():
     os.mkdir("./png_gt",0755)
     os.mkdir("./png_raw",0755)
 
-    parentDataDir = sys.argv[1]
-    if parentDataDir[-1] != '/':
-       parentDataDir += "/"
+    config = json_tools.loadConfig(sys.argv[1])
+    parentDataDir = json_tools.getDataDir(config)
+    multiplicationFactor = json_tools.getMultFactor(config)
     
     xlsInfo = gt_tool.loadXLSFiles(parentDataDir)
 
@@ -58,13 +54,13 @@ def main():
     label_db_train = lmdb.open('groundtruth_train', map_size=int(4294967296))
     label_db_test = lmdb.open('groundtruth_test', map_size=int(4294967296))
 
-    testNames = gt_tool.getTestNames(xlsInfo,0.18)
+    testNames = gt_tool.getTestNames(xlsInfo, json_tools.getPercentageForTest(config))
 
     with out_db_train.begin(write=True) as odn_txn:
      with out_db_test.begin(write=True) as ods_txn:
       with label_db_train.begin(write=True) as ldn_txn:
        with label_db_test.begin(write=True) as lds_txn:
-         writeOutImages(xlsInfo, parentDataDir, odn_txn, ods_txn, ldn_txn, lds_txn, testNames, singleLabelIndex, multiplicationFactor)
+         writeOutImages(xlsInfo, parentDataDir, odn_txn, ods_txn, ldn_txn, lds_txn, testNames, config, multiplicationFactor)
 
     out_db_train.close()
     label_db_train.close()
@@ -73,14 +69,14 @@ def main():
     sys.exit(0)
 
 
-def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn, testNames, singleLabelIndex, multiplicationFactor):
+def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn, testNames, config, multiplicationFactor):
     lastList=[]
     lastname=''
     test_idx = 0
     train_idx =0
     for i,r in xlsInfo.iterrows():
        if (lastname!= r[2] and len(lastList) > 0):
-           idxUpdates = outputImages(lastname, lastList, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn, testNames, test_idx, train_idx,singleLabelIndex,multiplicationFactor)
+           idxUpdates = outputImages(lastname, lastList, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn, testNames, test_idx, train_idx,config,multiplicationFactor)
            test_idx += idxUpdates[1]
            train_idx += idxUpdates[0]
            lastList=[]
@@ -88,13 +84,17 @@ def  writeOutImages(xlsInfo, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn, t
            lastList.append(r)
        lastname=r[2]
     if (len(lastList) > 0):
-       outputImages(lastname, lastList, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn, testNames, test_idx, train_idx, singleLabelIndex,multiplicationFactor)
+       outputImages(lastname, lastList, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn, testNames, test_idx, train_idx, config,multiplicationFactor)
 
-def outputImages(name, imageData, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn, testNames, test_idx, train_idx,singleLabelIndex,multiplicationFactor):
+def outputImages(name, imageData, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_txn, testNames, test_idx, train_idx,config,multiplicationFactor):
    print name + '-----------'
    for i in range(0,multiplicationFactor):
-      labelImage, labelIndices, rawImage = createGTImg(name, imageData, parentDataDir,singleLabelIndex,i>0)
-      if (rawImage.size[0] < gt_tool.imageCropSize or rawImage.size[1] < gt_tool.imageCropSize):
+      labelImage, labelIndices, rawImage = createGTImg(name, imageData, parentDataDir,config,i>0)
+      imageCropSizeMin = 0
+      if (json_tools.isResize(config)):
+        imageCropSizeMin = json_tools.getResize(config)
+      if (rawImage.size[0] < imageCropSizeMin or rawImage.size[1] < imageCropSizeMin):
+         print 'skipping'
          return (0,0)
       labelImage.save("./png_gt/" + name[0:name.index('.tif')] + "_" + str(i) + ".png")
       rawImage.save("./png_raw/"  + name[0:name.index('.tif')] + "_" + str(i) + ".png")
@@ -109,9 +109,9 @@ def outputImages(name, imageData, parentDataDir,odn_txn, ods_txn, ldn_txn, lds_t
    else:
       return (multiplicationFactor,0)
            
-def createGTImg(name,xlsInfoList, dir, singleLabelIndex, augment):
-  initialSize, imRaw= gt_tool.loadImage(dir + 'png/' + name[0:name.index('.tif')] + '.png')
-  newImage, labelData = gt_tool.createLabelImage(xlsInfoList, initialSize, imRaw, singleLabelIndex, augment)
+def createGTImg(name,xlsInfoList, dir, config, augment):
+  initialSize, imRaw= gt_tool.loadImage(dir + 'png/' + name[0:name.index('.tif')] + '.png', config)
+  newImage, labelData = gt_tool.createLabelImage(xlsInfoList, initialSize, imRaw, json_tools.getSingleLabel(config), augment)
   return labelData[0], labelData[1], newImage
    
 def outGT (im, out_txn, idx):

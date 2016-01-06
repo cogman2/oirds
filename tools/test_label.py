@@ -15,6 +15,7 @@ import caffe
 from PIL import Image
 import numpy as np
 import net_tool
+import json_tools
 
 def main():
     from pathlib import Path
@@ -27,32 +28,22 @@ def main():
     else:
         from io import StringIO
 
-    if len(sys.argv) < 5:
-      print "Usage: ", sys.argv[0], " xlsDir dataDir modelName percentInTestSet [labelIndex]"
+    if len(sys.argv) < 3:
+      print "Usage: ", sys.argv[0], " config percentInTestSet "
       sys.exit( 0 )
 
-    xlsDir = sys.argv[1];
-    if xlsDir[-1] != '/':
-       xlsDir += "/"
+    config = json_tools.loadConfig(sys.argv[1])
 
-    singleLabel = -1
-    if (len(sys.argv) > 5):
-      singleLabel = int(sys.argv[5])
-
-
-    xlsInfos = gt_tool.loadXLSFiles(xlsDir)
-
-    networkDataDir = sys.argv[2]
-    if networkDataDir[-1] != '/':
-       networkDataDir += "/"
+    xlsInfos = gt_tool.loadXLSFiles(json_tools.getDataDir(config))
 
     randUniform = random.seed(23361)
-    testNames = gt_tool.getTestNames(xlsInfos,float(sys.argv[4]))
+    testNames = gt_tool.getTestNames(xlsInfos,float(sys.argv[2]))
 
     lastList=[]
     lastname=''
 
-    net, transformer = net_tool.loadNet(networkDataDir, sys.argv[3], gt_tool.imageCropSize)
+    imageSize = json_tools.getResize(config);
+    net, transformer = net_tool.loadNet(config, np.array([imageSize,imageSize]))
     net_tool.dumpNetWeights(net)
 
     txtOut = open('stats.txt','w');
@@ -60,10 +51,10 @@ def main():
        if (lastname!= r[2] and len(lastList) > 0):
           if(lastname in testNames):
              runName = lastname[0:lastname.index('.tif')]
-             initialSize, rawImage = loadImg(runName, xlsDir)
+             initialSize, rawImage = loadImg(runName, config)
              result = net_tool.runcaffe(net, transformer, rawImage)
              classes = outputResult(result[0], transformer, result[1], rawImage, runName)
-             gtIm, gtIndex = gt_tool.createLabelImageGivenSize(lastList, initialSize, (classes.shape[0], classes.shape[1]), singleLabel)
+             gtIm, gtIndex = gt_tool.createLabelImageGivenSize(lastList, initialSize, (classes.shape[0], classes.shape[1]), json_tools.getSingleLabel(config))
              compareResults(txtOut,runName, classes, gtIndex)
           lastList=[]
        else:
@@ -71,12 +62,11 @@ def main():
        lastname=r[2]
     txtOut.close()
 
-def loadImg(name,dir):
+def loadImg(name,config):
    from PIL import Image
    print name + '-----------'
-   imRaw = Image.open(dir+'png/'+name +'.png')
-   initialSize = imRaw.size
-   return initialSize, net_tool.convertImage(gt_tool.resizeImg(imRaw))
+   initialSize, imRaw = gt_tool.loadImage(json_tools.getDataDir(config)+'png/'+name +'.png', config)
+   return initialSize, net_tool.convertImage(imRaw)
 
 def outputResult(out, transformer, data, rawImage, name):
   layrName = 'score'
