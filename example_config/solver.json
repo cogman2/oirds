@@ -1,0 +1,6 @@
+{
+   "modelFileName": "/data/oird_fcn/fcn-8s-pascalcontext.caffemodel",
+   "prototxt" : "solver.prototxt",
+   "netsurgery": true,
+   "steps":15000
+}

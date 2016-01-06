@@ -1,0 +1,7 @@
+{
+   "dataDirectory": "/data/oirds",
+   "multiplicationFactor": 1,
+   "labelIndex": 7,
+   "resize": 128,
+   "percentageToTest":0.18
+}
