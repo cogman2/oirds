@@ -15,6 +15,7 @@ def loadConfig(fileName):
 def getModelFileName(data):
    return str(data['modelFileName'])
 
+
 def getDataDir(data):
    networkDataDir= data['dataDirectory']
    if networkDataDir[-1] != '/':
@@ -29,6 +30,9 @@ def isNetSurgery(data):
 
 def isSGDSolver(data):
    return data.has_key('SGDSolver') and data['SGDSolver']
+
+def isGPU(data):
+   return data.has_key('gpu') and data['gpu']
 
 def getPercentageForTest(data):
    return data['percentageToTest']
