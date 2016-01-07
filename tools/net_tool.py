@@ -56,21 +56,22 @@ def runcaffe (net, im, config):
    net.blobs['data'].reshape(1,3,im.shape[0], im.shape[1])
    meanarr = json_tools.getMeanArray(config)
 
-   transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
    rescaleFactor=255.0
-   transformer.set_mean('data', meanarr/rescaleFactor)
+
+   transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
+   transformer.set_mean('data', meanarr)
    transformer.set_transpose('data', (2,0,1))
-   ## RGB -> BGR ?
+   ## RGB -> BGR
    transformer.set_channel_swap('data', (2,1,0))
-   transformer.set_raw_scale('data', 1.0/rescaleFactor)
+   transformer.set_raw_scale('data', rescaleFactor)
    
    meanarr = meanarr[:,numpy.newaxis,numpy.newaxis] if (len(meanarr.shape)==1) else meanarr[(2,1,0),:,:]
    img = (im.transpose(2,0,1) - meanarr)/rescaleFactor
    img = img[(2,1,0),:,:]
    img = img[numpy.newaxis,:,:,:]
-   caffe_in = img
 
-   caffe_in2 =  transformer.preprocess('data', im)[np.newaxis,:,:,:]
+   caffe_in = transformer.preprocess('data', im)[np.newaxis,:,:,:] if json_tools.useTransformer(config) else img
+
    return (net.forward_all(data=np.asarray([caffe_in])), net.blobs['data'].data[0], transformer)
   # net.blobs['data'].data[...] = transformer.preprocess('data', im)
   # return outputResult(net.forward(), transformer, net.blobs['data'].data[0],im, name)  

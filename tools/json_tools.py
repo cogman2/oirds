@@ -4,6 +4,9 @@ import caffe
 def getAttribute(data, name):
    return data[name]
 
+def useTransformer(data):
+   return data.has_key('useTransformer') and data['useTransformer']
+
 def getNetworkOutputName(data):
   return data['networkOutputName']
 
