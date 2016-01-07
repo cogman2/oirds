@@ -88,7 +88,7 @@ def getPolysForImage(xlsInfoList, initialSize, finalSize, singleLabelIndex):
      poly = 'POLYGON (' + poly + ',' + beg + '))'
      polyObj = loads(poly)
      polyObj = resizePoly(polyObj, initialSize, finalSize)
-     conlorIndex = modeIndices[r[modeIndex]]
+     colorIndex = modeIndices[r[modeIndex]]
      if (singleLabelIndex>=0):
         colorIndex= singleLabelIndex
      polyList.append((polyObj,colorIndex))
