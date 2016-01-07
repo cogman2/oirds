@@ -34,9 +34,6 @@ def getProtoTxt(data):
 def isNetSurgery(data):
    return data.has_key('netsurgery') and data['netsurgery']
 
-def isSGDSolver(data):
-   return data.has_key('SGDSolver') and data['SGDSolver']
-
 def isGPU(data):
    return data.has_key('gpu') and data['gpu']
 
