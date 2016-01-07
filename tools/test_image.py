@@ -43,7 +43,7 @@ def loadImgArray(name, config):
    from PIL import Image
    print name + '-----------'
    initialiSize, imRaw = gt_tool.loadImage(name, config)
-   return net_tool.convertImage(imRaw)
+   return net_tool.convertImage(imRaw,config)
 
 def outputResult(out, transformer, data, rawImage, config):
   layrName = json_tools.getNetworkOutputName(config)

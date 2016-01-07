@@ -4,8 +4,11 @@
    "meanarray": [112.0,112.0,112.0],
    "prototxt": "/data/oird_fcn/deploy.prototxt",
    "netsurgery": true,
+   "gpu":true,
    "resize" :  128,
    "labelIndex": 7,
    "percentageToTest": 0.04,
-   "networkOutputName": "score"
+   "networkOutputName": "score",
+   "useCaffeImage":true,
+   "useTransformer":true
 }

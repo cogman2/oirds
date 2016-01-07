@@ -66,7 +66,7 @@ def loadImg(name,config):
    from PIL import Image
    print name + '-----------'
    initialSize, imRaw = gt_tool.loadImage(json_tools.getDataDir(config)+'png/'+name +'.png', config)
-   return initialSize, net_tool.convertImage(imRaw)
+   return initialSize, net_tool.convertImage(imRaw,config)
 
 def outputResult(out, transformer, data, rawImage, name, layerName):
   classPerPixel = out[layerName][0].argmax(axis=0)

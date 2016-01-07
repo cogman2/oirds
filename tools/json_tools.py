@@ -7,6 +7,9 @@ def getAttribute(data, name):
 def useTransformer(data):
    return data.has_key('useTransformer') and data['useTransformer']
 
+def useCaffeImage(data):
+   return data.has_key('useCaffeImage') and data['useCaffeImage']
+
 def getNetworkOutputName(data):
   return data['networkOutputName']
 

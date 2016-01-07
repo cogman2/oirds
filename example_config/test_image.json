@@ -5,5 +5,8 @@
    "prototxt": "/data/oird_fcn/deploy.prototxt",
    "networkOutputName": "score",
    "gpu": false,
-   "netsurgery": true
+   "netsurgery": true,
+   "useCaffeImage":true,
+   "useTransformer":true
+
 }

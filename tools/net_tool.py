@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 #%matplotlib inline
 import lmdb
 import caffe
+import json_tools
 from PIL import Image
 import numpy as np
 
@@ -109,6 +110,9 @@ def vis_square(name, data, padsize=1, padval=0):
     plt.savefig(name + 'plt')
     plt.close()
 
-def convertImage (im):
+def convertImage (im, config):
+   import skimage
    tmp= np.array(im)
+   if (json_tools.useCaffeImage(config)):
+     tmp = skimage.img_as_float(im).astype(np.float32)
    return tmp
