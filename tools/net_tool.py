@@ -52,14 +52,14 @@ def runcaffe (net, im, config):
    meanarr = json_tools.getMeanArray(config)
 
    transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
-   transformer.set_mean('data', meanarr)
+   rescaleFactor=255.0
+   transformer.set_mean('data', meanarr/rescaleFactor)
    transformer.set_transpose('data', (2,0,1))
    ## RGB -> BGR ?
    transformer.set_channel_swap('data', (2,1,0))
-   rescaleFactor=1.0
-   transformer.set_raw_scale('data', rescaleFactor)
+   transformer.set_raw_scale('data', 1.0/rescaleFactor)
 
-   img = (im.transpose(2,0,1) - meanarr)/rescaleFactor
+   img = (im.transpose(2,0,1) - meanarr[(2,1,0),:,:])/rescaleFactor
    img = img[(2,1,0),:,:]
    img = img[numpy.newaxis,:,:,:]
    caffe_in = img
