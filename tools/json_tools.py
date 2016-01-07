@@ -1,8 +1,11 @@
 import json
 import caffe
 
-def getAttribute(config, name):
-   return config[name]
+def getAttribute(data, name):
+   return data[name]
+
+def getNetworkOutputName(data):
+  return data['networkOutputName']
 
 def loadConfig(fileName):
   with open(fileName) as data_file:    

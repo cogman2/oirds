@@ -35,33 +35,38 @@ def interp_surgery(net, layers):
         net.params[l][0].data[range(m), range(k), :, :] = filt
 
 
-def loadNet(config, imageShape):
+def loadNet(config):
    from caffe.proto import caffe_pb2
    import json_tools
-   meanarr = json_tools.getMeanArray(config)/255.0
    net = caffe.Net(json_tools.getProtoTxt(config),json_tools.getModelFileName(config), caffe.TEST)
-   net.blobs['data'].reshape(1,3,imageShape[0], imageShape[1])
+   interp_layers = [k for k in net.params.keys() if 'up' in k]
+   if (json_tools.isNetSurgery(config)):
+     interp_surgery(net, interp_layers)
+   return net
+
+def runcaffe (net, im, config):
+   import numpy
+   import json_tools
+   from caffe.proto import caffe_pb2
+
+   meanarr = json_tools.getMeanArray(config)
+
    transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
-   
    transformer.set_mean('data', meanarr)
    transformer.set_transpose('data', (2,0,1))
    ## RGB -> BGR ?
    transformer.set_channel_swap('data', (2,1,0))
-   transformer.set_raw_scale('data', 255.0)
+   rescaleFactor=1.0
+   transformer.set_raw_scale('data', rescaleFactor)
 
-   interp_layers = [k for k in net.params.keys() if 'up' in k]
-   if (json_tools.isNetSurgery(config)):
-     interp_surgery(net, interp_layers)
-   return net, transformer
+   img = (im.transpose(2,0,1) - meanarr)/rescaleFactor
+   img = img[(2,1,0),:,:]
+   img = img[numpy.newaxis,:,:,:]
+   caffe_in = img
 
-def runcaffe (net, transformer, im):
-   from caffe.proto import caffe_pb2
-
-   img = im[(2,1,0),:,:]
-   img = img - transformer.mean
-   caffe_in = img[numpy.newaxis,:,:,:]
-   #caffe_in =  transformer.preprocess('data', im)[np.newaxis,:,:,:]
-   return (net.forward_all(data=np.asarray([caffe_in])), net.blobs['data'].data[0])
+   net.blobs['data'].reshape(caffe_in.shape[0],caffe_in.shape[1],caffe_in.shape[2],caffe_in.shape[3])
+   caffe_in2 =  transformer.preprocess('data', im)[np.newaxis,:,:,:]
+   return (net.forward_all(data=np.asarray([caffe_in])), net.blobs['data'].data[0], transformer)
   # net.blobs['data'].data[...] = transformer.preprocess('data', im)
   # return outputResult(net.forward(), transformer, net.blobs['data'].data[0],im, name)  
 

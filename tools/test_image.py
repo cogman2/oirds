@@ -32,10 +32,11 @@ def main():
 
     im = loadImgArray(sys.argv[1], config);
 
-    net, transformer = net_tool.loadNet(config, im.shape)
+    net = net_tool.loadNet(config)
 
-    result = net_tool.runcaffe(net, transformer, im)
-    outputResult(result[0], transformer, result[1], im)
+    result = net_tool.runcaffe(net, im, config)
+
+    outputResult(result[0], result[2], result[1], im)
 
 def loadImgArray(name, config):
    from PIL import Image

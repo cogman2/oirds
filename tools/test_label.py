@@ -28,7 +28,7 @@ def main():
     else:
         from io import StringIO
 
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 2:
       print "Usage: ", sys.argv[0], " config "
       sys.exit( 0 )
 
@@ -43,7 +43,7 @@ def main():
     lastname=''
 
     imageSize = json_tools.getResize(config);
-    net, transformer = net_tool.loadNet(config, np.array([imageSize,imageSize]))
+    net = net_tool.loadNet(config)
     net_tool.dumpNetWeights(net)
 
     txtOut = open('stats.txt','w');
@@ -52,8 +52,8 @@ def main():
           if(lastname in testNames):
              runName = lastname[0:lastname.index('.tif')]
              initialSize, rawImage = loadImg(runName, config)
-             result = net_tool.runcaffe(net, transformer, rawImage)
-             classes = outputResult(result[0], transformer, result[1], rawImage, runName)
+             result = net_tool.runcaffe(net, rawImage, config)
+             classes = outputResult(result[0], result[2], result[1], rawImage, runName, json_tools.getNetworkOutputName(config))
              gtIm, gtIndex = gt_tool.createLabelImageGivenSize(lastList, initialSize, (classes.shape[0], classes.shape[1]), json_tools.getSingleLabel(config))
              compareResults(txtOut,runName, classes, gtIndex)
           lastList=[]
@@ -68,11 +68,10 @@ def loadImg(name,config):
    initialSize, imRaw = gt_tool.loadImage(json_tools.getDataDir(config)+'png/'+name +'.png', config)
    return initialSize, net_tool.convertImage(imRaw)
 
-def outputResult(out, transformer, data, rawImage, name):
-  layrName = 'score'
-  classPerPixel = out[layrName][0].argmax(axis=0)
-  print 'RANGE ' + str(np.min(out[layrName][0])) + " to " + str(np.max(out[layrName][0]))
-  print 'SHAPE ' + str(out[layrName][0].shape)
+def outputResult(out, transformer, data, rawImage, name, layerName):
+  classPerPixel = out[layerName][0].argmax(axis=0)
+  print 'RANGE ' + str(np.min(out[layerName][0])) + " to " + str(np.max(out[layerName][0]))
+  print 'SHAPE ' + str(out[layerName][0].shape)
   print 'HIST ' + str(np.histogram(classPerPixel))
 #  print 'RANGED ' + str(np.min(data)) + " to " + str(np.max(data))
 #  print 'SHAPED ' + str(data.shape)

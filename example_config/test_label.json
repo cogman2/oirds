@@ -6,5 +6,6 @@
    "netsurgery": true,
    "resize" :  128,
    "labelIndex": 7,
-   "percentageToTest": 0.04
+   "percentageToTest": 0.04,
+   "networkOutputName": "score"
 }
