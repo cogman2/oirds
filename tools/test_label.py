@@ -37,14 +37,17 @@ def main():
     xlsInfos = gt_tool.loadXLSFiles(json_tools.getDataDir(config))
 
     randUniform = random.seed(23361)
-    testNames = gt_tool.getTestNames(xlsInfos,json_tools.getPercentageForTest(config))
+    if (json_tools.hasImageName(config)):
+      testNames = set()
+      testNames.add(json_tools.getImageName(config))
+    else:
+      testNames = gt_tool.getTestNames(xlsInfos,json_tools.getPercentageForTest(config))
 
     lastList=[]
     lastname=''
 
-    imageSize = json_tools.getResize(config);
     net = net_tool.loadNet(config)
-    net_tool.dumpNetWeights(net)
+    #net_tool.dumpNetWeights(net)
 
     txtOut = open('stats.txt','w');
     for i,r in xlsInfos.iterrows():
@@ -52,6 +55,7 @@ def main():
           if(lastname in testNames):
              runName = lastname[0:lastname.index('.tif')]
              initialSize, rawImage = loadImg(runName, config)
+             print rawImage.shape
              result = net_tool.runcaffe(net, rawImage, config)
              classes = outputResult(result[0], result[2], result[1], rawImage, runName, json_tools.getNetworkOutputName(config))
              gtIm, gtIndex = gt_tool.createLabelImageGivenSize(lastList, initialSize, (classes.shape[0], classes.shape[1]), json_tools.getSingleLabel(config))

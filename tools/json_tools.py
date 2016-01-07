@@ -58,6 +58,12 @@ def getSingleLabel(data):
      return int(data['labelIndex'])
    return -1;
 
+def hasImageName(data):
+    return data.has_key('imageName')
+
+def getImageName(data):
+   return data['imageName']
+
 def getMeanArray(data):
    from caffe.proto import caffe_pb2
    import numpy as np

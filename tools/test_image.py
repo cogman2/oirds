@@ -31,9 +31,10 @@ def main():
 
     config = json_tools.loadConfig(sys.argv[2])
 
-    im = loadImgArray(sys.argv[1], config);
-
     net = net_tool.loadNet(config)
+
+    im = loadImgArray(sys.argv[1], config);
+    print im.shape
 
     result = net_tool.runcaffe(net, im, config)
 
