@@ -42,7 +42,7 @@ def main():
   caffe.set_mode_gpu()
   caffe.set_device(0)
 
-  solver = caffe.SGDSolver(json_tools.getProtoTxt(config))
+  solver = caffe.SGDSolver(json_tools.getProtoTxt(config)) if json_tools.isSGDSolver(config)) else caffe.Solver(json_tools.getProtoTxt(config))
 
 # do net surgery to set the deconvolution weights for bilinear interpolation
   interp_layers = [k for k in solver.net.params.keys() if 'up' in k]

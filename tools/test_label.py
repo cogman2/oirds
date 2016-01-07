@@ -29,7 +29,7 @@ def main():
         from io import StringIO
 
     if len(sys.argv) < 3:
-      print "Usage: ", sys.argv[0], " config percentInTestSet "
+      print "Usage: ", sys.argv[0], " config "
       sys.exit( 0 )
 
     config = json_tools.loadConfig(sys.argv[1])
@@ -37,7 +37,7 @@ def main():
     xlsInfos = gt_tool.loadXLSFiles(json_tools.getDataDir(config))
 
     randUniform = random.seed(23361)
-    testNames = gt_tool.getTestNames(xlsInfos,float(sys.argv[2]))
+    testNames = gt_tool.getTestNames(xlsInfos,json_tools.getPercentageForTest(config))
 
     lastList=[]
     lastname=''

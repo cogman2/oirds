@@ -24,6 +24,9 @@ def getProtoTxt(data):
 def isNetSurgery(data):
    return data.has_key('netsurgery') and data['netsurgery']
 
+def isSGDSolver(data):
+   return data.has_key('SGDSolver') and data['SGDSolver']
+
 def getPercentageForTest(data):
    return data['percentageToTest']
 

@@ -38,15 +38,16 @@ def interp_surgery(net, layers):
 def loadNet(config, imageShape):
    from caffe.proto import caffe_pb2
    import json_tools
-   meanarr = json_tools.getMeanArray(config)
+   meanarr = json_tools.getMeanArray(config)/255.0
    net = caffe.Net(json_tools.getProtoTxt(config),json_tools.getModelFileName(config), caffe.TEST)
    net.blobs['data'].reshape(1,3,imageShape[0], imageShape[1])
    transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
+   
    transformer.set_mean('data', meanarr)
    transformer.set_transpose('data', (2,0,1))
    ## RGB -> BGR ?
    transformer.set_channel_swap('data', (2,1,0))
- #  transformer.set_raw_scale('data', 255.0)
+   transformer.set_raw_scale('data', 255.0)
 
    interp_layers = [k for k in net.params.keys() if 'up' in k]
    if (json_tools.isNetSurgery(config)):
@@ -55,7 +56,11 @@ def loadNet(config, imageShape):
 
 def runcaffe (net, transformer, im):
    from caffe.proto import caffe_pb2
-   caffe_in =  transformer.preprocess('data', im)[np.newaxis,:,:,:]
+
+   img = im[(2,1,0),:,:]
+   img = img - transformer.mean
+   caffe_in = img[numpy.newaxis,:,:,:]
+   #caffe_in =  transformer.preprocess('data', im)[np.newaxis,:,:,:]
    return (net.forward_all(data=np.asarray([caffe_in])), net.blobs['data'].data[0])
   # net.blobs['data'].data[...] = transformer.preprocess('data', im)
   # return outputResult(net.forward(), transformer, net.blobs['data'].data[0],im, name)  
