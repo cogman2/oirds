@@ -225,11 +225,15 @@ def rollImage(image, delta):
     return image
 
 def compareResults(result, gt):
+  import numpy as np
   fp=0.0
   fn=0.0
   tp=0.0
   tn=0.0
-  wrongLabel=0.0
+  wrongLabel=0.0 
+  gt = np.transpose(gt)
+# tn = sum(sum((gt==0)==(result==0)))
+# tp = 
   for i in range(0,result.shape[0]):
     for j in range(0,result.shape[1]):
       tn += float(result[i,j] == gt[i,j] and gt[i,j] == 0)
