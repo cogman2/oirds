@@ -10,5 +10,6 @@
    "percentageToTest": 0.04,
    "networkOutputName": "score",
    "useCaffeImage":true,
-   "useTransformer":true
+   "useTransformer":true,
+   "dumpBlobs":false
 }

@@ -85,8 +85,17 @@ def dumpNetWeights(net):
     except:
       continue
 
+def dumpNetFilters(net, runName):
+  for ll in net.blobs:
+    try:
+      filters = net.blobs[ll].data
+      vis_filter(runName + '_' + ll, filters)
+    except:
+      continue
+
+
 def vis_filter(name, data, padsize=1, padval=0):
-  wc = data.shape[0]/64;
+  wc = data.shape[0]/64 + 1;
   for pltNum in range(0,wc):
     vis_square(name + str(pltNum), data[pltNum*data.shape[0]:(pltNum+1)*data.shape[0],:], padsize,padval)
 # take an array of shape (n, height, width) or (n, height, width, channels)
@@ -116,3 +125,17 @@ def convertImage (im, config):
    if (json_tools.useCaffeImage(config)):
      tmp = skimage.img_as_float(im).astype(np.float32)
    return tmp
+
+#def show_filters(name, data):
+ #   plt.figure()
+ #   wc = data.shape[0]/8 + 1;
+  #  filt_min, filt_max = data.min(), data.max()
+   # for j in range(wc):
+    #  for i in range(3):
+     #   plt.subplot(1,4,i+2)
+      #  plt.title("filter #{} output".format(i))
+       # plt.imshow(net.blobs['conv'].data[0, i], vmin=filt_min, vmax=filt_max)
+    #    plt.tight_layout()
+    #    plt.axis('off')
+  #  p#lt.savefig(name + 'plt')
+  #  plt.close()

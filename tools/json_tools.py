@@ -28,6 +28,9 @@ def getDataDir(data):
       networkDataDir += "/"
    return networkDataDir
 
+def dumpBlobs(data):
+   return data.has_key('dumpBlobs') and data['dumpBlobs']
+
 def getProtoTxt(data):
    return str(data['prototxt'])
 

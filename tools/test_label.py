@@ -57,6 +57,8 @@ def main():
              initialSize, rawImage = loadImg(runName, config)
              print rawImage.shape
              result = net_tool.runcaffe(net, rawImage, config)
+             if (json_tools.dumpBlobs(config)):
+               net_tool.dumpNetFilters(net, runName)
              classes = outputResult(result[0], result[2], result[1], rawImage, runName, json_tools.getNetworkOutputName(config))
              gtIm, gtIndex = gt_tool.createLabelImageGivenSize(lastList, initialSize, (classes.shape[0], classes.shape[1]), json_tools.getSingleLabel(config))
              compareResults(txtOut,runName, classes, gtIndex)
@@ -77,20 +79,16 @@ def outputResult(out, transformer, data, rawImage, name, layerName):
   print 'RANGE ' + str(np.min(out[layerName][0])) + " to " + str(np.max(out[layerName][0]))
   print 'SHAPE ' + str(out[layerName][0].shape)
   print 'HIST ' + str(np.histogram(classPerPixel))
-#  print 'RANGED ' + str(np.min(data)) + " to " + str(np.max(data))
-#  print 'SHAPED ' + str(data.shape)
 
   ima = transformer.deprocess('data', data)
   print 'DIFF IMAGE ' + str(np.min( rawImage - ima))
   shapeIME =  (classPerPixel.shape[0],classPerPixel.shape[1])
-  plt.subplot(1, 3, 1)
+  plt.subplot(1, 2, 1)
   plt.imshow(rawImage)
 
-  plt.subplot(1, 3, 2)
-  plt.imshow(ima)
-
-  plt.subplot(1, 3, 3)
-  imArray = toImageArray(classPerPixel);
+  plt.subplot(1, 2, 2)
+#  imArray = toImageArray(classPerPixel);
+  imArray = overlayImageArray(np.copy(rawImage), classPerPixel);
   plt.imshow(imArray) 
 
   plt.savefig(name+'_output')
@@ -101,6 +99,14 @@ def outputResult(out, transformer, data, rawImage, name, layerName):
 def toImageArray(classPerPixel):
   maxValue = len(gt_tool.label_colors)
   ima = np.zeros((classPerPixel.shape[0], classPerPixel.shape[0], 3), dtype=np.uint8)
+  for i in range(0,ima.shape[0]):
+    for j in range(0,ima.shape[1]):
+        if(classPerPixel[i,j]>0 and classPerPixel[i,j]<maxValue):
+          ima[i,j] = gt_tool.label_colors[classPerPixel[i,j]]
+  return ima
+
+def overlayImageArray(ima, classPerPixel):
+  maxValue = len(gt_tool.label_colors)
   for i in range(0,ima.shape[0]):
     for j in range(0,ima.shape[1]):
         if(classPerPixel[i,j]>0 and classPerPixel[i,j]<maxValue):
