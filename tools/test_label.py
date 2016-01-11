@@ -5,7 +5,7 @@
 
 #import h5py, os
 
-import gt_tool
+
 import matplotlib 
 matplotlib.use('Agg') 
 import matplotlib.pyplot as plt
@@ -16,6 +16,7 @@ from PIL import Image
 import numpy as np
 import net_tool
 import json_tools
+import gt_tool
 
 def main():
     from pathlib import Path
@@ -34,14 +35,16 @@ def main():
 
     config = json_tools.loadConfig(sys.argv[1])
 
-    xlsInfos = gt_tool.loadXLSFiles(json_tools.getDataDir(config))
+    gtTool = gt_tool.GTTool(config)
+    gtTool.load()
+
 
     randUniform = random.seed(23361)
     if (json_tools.hasImageName(config)):
       testNames = set()
       testNames.add(json_tools.getImageName(config))
     else:
-      testNames = gt_tool.getTestNames(xlsInfos,json_tools.getPercentageForTest(config))
+      testNames = gtTool.getTestNames(xlsInfos,json_tools.getPercentageForTest(config))
 
     lastList=[]
     lastname=''
@@ -50,31 +53,24 @@ def main():
     #net_tool.dumpNetWeights(net)
 
     txtOut = open('stats.txt','w');
-    for i,r in xlsInfos.iterrows():
-       if (lastname!= r[2] and len(lastList) > 0):
+
+    def f(lastname, lastList):
           if(lastname in testNames):
-             runName = lastname[0:lastname.index('.tif')]
-             initialSize, rawImage = loadImg(runName, config)
-             print rawImage.shape
+             runName = lastname[0:lastname.rindex('.')]
+             print runName + '-----------'
+             initialSize, rawImage = gtTool.loadImage(lastname)
+             rawImage = net_tool.convertImage(rawImage,config)
              result = net_tool.runcaffe(net, rawImage, config)
              if (json_tools.dumpBlobs(config)):
                net_tool.dumpNetFilters(net, runName)
-             classes = outputResult(result[0], result[2], result[1], rawImage, runName, json_tools.getNetworkOutputName(config))
-             gtIm, gtIndex = gt_tool.createLabelImageGivenSize(lastList, initialSize, (classes.shape[0], classes.shape[1]), json_tools.getSingleLabel(config))
+             classes = outputResult(gtTool, result[0], result[2], result[1], rawImage, runName, json_tools.getNetworkOutputName(config))
+             gtIm, gtIndex = gtTool.createLabelImageGivenSize(lastList, initialSize, (classes.shape[0], classes.shape[1]), json_tools.getSingleLabel(config))
              compareResults(txtOut,runName, classes, gtIndex)
-          lastList=[]
-       else:
-          lastList.append(r)
-       lastname=r[2]
+
+    gtTool.iterate(f)
     txtOut.close()
 
-def loadImg(name,config):
-   from PIL import Image
-   print name + '-----------'
-   initialSize, imRaw = gt_tool.loadImage(json_tools.getDataDir(config)+'png/'+name +'.png', config)
-   return initialSize, net_tool.convertImage(imRaw,config)
-
-def outputResult(out, transformer, data, rawImage, name, layerName):
+def outputResult(gtTool, out, transformer, data, rawImage, name, layerName):
   classPerPixel = out[layerName][0].argmax(axis=0)
   print 'RANGE ' + str(np.min(out[layerName][0])) + " to " + str(np.max(out[layerName][0]))
   print 'SHAPE ' + str(out[layerName][0].shape)
@@ -88,7 +84,7 @@ def outputResult(out, transformer, data, rawImage, name, layerName):
 
   plt.subplot(1, 2, 2)
 #  imArray = toImageArray(classPerPixel);
-  imArray = overlayImageArray(np.copy(rawImage), classPerPixel);
+  imArray = overlayImageArray(gtTool, np.copy(rawImage), classPerPixel);
   plt.imshow(imArray) 
 
   plt.savefig(name+'_output')
@@ -96,21 +92,14 @@ def outputResult(out, transformer, data, rawImage, name, layerName):
 
   return classPerPixel
 
-def toImageArray(classPerPixel):
-  maxValue = len(gt_tool.label_colors)
+def toImageArray(gtTool,classPerPixel):
   ima = np.zeros((classPerPixel.shape[0], classPerPixel.shape[0], 3), dtype=np.uint8)
-  for i in range(0,ima.shape[0]):
-    for j in range(0,ima.shape[1]):
-        if(classPerPixel[i,j]>0 and classPerPixel[i,j]<maxValue):
-          ima[i,j] = gt_tool.label_colors[classPerPixel[i,j]]
-  return ima
+  return overlayImageArray(gtTool, ima, classPerPixel)
 
-def overlayImageArray(ima, classPerPixel):
-  maxValue = len(gt_tool.label_colors)
+def overlayImageArray(gtTool, ima, classPerPixel):
   for i in range(0,ima.shape[0]):
     for j in range(0,ima.shape[1]):
-        if(classPerPixel[i,j]>0 and classPerPixel[i,j]<maxValue):
-          ima[i,j] = gt_tool.label_colors[classPerPixel[i,j]]
+        ima[i,j] = gtTool.get_label_color(classPerPixel[i,j])
   return ima
    
 def compareResults(fo,name, result, gt):

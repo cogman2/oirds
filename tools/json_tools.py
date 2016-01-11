@@ -4,6 +4,18 @@ import caffe
 def getAttribute(data, name):
    return data[name]
 
+def getXLSColumns(data):
+   return data['xlsInfoColumns']
+
+def getModes(data):
+   return data['modes'];
+
+def isGray(data):
+   return data.has_key('isGray') and data['isGray']
+
+def getImageDirectory(data):
+   return data['imageDirectory'] if data.has_key('imageDirectory') else 'png'
+
 def useTransformer(data):
    return data.has_key('useTransformer') and data['useTransformer']
 

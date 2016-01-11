@@ -1,7 +1,10 @@
 {
    "dataDirectory": "/data/oirds",
+   "imageDirectory": "png",
    "multiplicationFactor": 1,
    "labelIndex": 7,
    "resize": 128,
-   "percentageToTest":0.18
+   "percentageToTest":0.18,
+   "xlsInfoColumns" : [2,7,9],
+   "modes": ["BACKGROUND","VEHICLE/CAR","VEHICLE/PICK-UP","VEHICLE/TRUCK","VEHICLE/UNKNOWN","VEHICLE/VAN"]
 }

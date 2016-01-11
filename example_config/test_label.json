@@ -1,6 +1,9 @@
 {
    "modelFileName": "/data/oird_fcn/fcn-8s-pascalcontext.caffemodel",
+   "xlsInfoColumns" : [2,7,9],
+   "modes": ["BACKGROUND","VEHICLE/CAR","VEHICLE/PICK-UP","VEHICLE/TRUCK","VEHICLE/UNKNOWN","VEHICLE/VAN"],
    "dataDirectory": "/data/oirds",
+   "imageDirectory": "png",
    "meanarray": [112.0,112.0,112.0],
    "prototxt": "/data/oird_fcn/deploy.prototxt",
    "netsurgery": true,
