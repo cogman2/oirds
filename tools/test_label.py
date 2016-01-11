@@ -44,7 +44,7 @@ def main():
       testNames = set()
       testNames.add(json_tools.getImageName(config))
     else:
-      testNames = gtTool.getTestNames(xlsInfos,json_tools.getPercentageForTest(config))
+      testNames = gtTool.getTestNames(json_tools.getPercentageForTest(config))
 
     lastList=[]
     lastname=''
@@ -103,7 +103,8 @@ def overlayImageArray(gtTool, ima, classPerPixel):
   return ima
    
 def compareResults(fo,name, result, gt):
-  fo.write('STAT ' + name + ' = ' + str(gt_tool.compareResults(result, gt[0])))
+  stats =  str(gt_tool.compareResults(result, gt[0]))[1:-1]
+  fo.write(name + ',' + stats)
   fo.write('\n')
 
 if __name__=="__main__":

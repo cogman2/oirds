@@ -38,7 +38,7 @@ def compareResults(result, gt):
       precision=tp/(tp+fp)
       recall=tp/(tp+fn)
       f1=2.0 * (precision*recall / (precision+recall))
-    return (result.shape[0], result.shape[1], fp, fn, tp, tn, wrongLabel, precision, recall,(tp+tn)/(tp+tn+fp+fn),f1)
+    return (fp, fn, tp, tn, wrongLabel, precision, recall,(tp+tn)/(tp+tn+fp+fn),f1)
 
 def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
@@ -185,6 +185,13 @@ class GTTool:
 
      dataDirs = [self.parentDataDir+z for z in filter( lambda x: x.startswith( "DataSet_" ), os.listdir( self.parentDataDir ) )]
      xlsFiles = list( itertools.chain( *[ glob.glob( x + "/*.xls" ) for x in dataDirs ] ) )
+
+     sxlsInfoColumns = np.copy(xlsInfoColumns)
+     sxlsInfoColumns.sort()
+     cl = sxlsInfoColumns.tolist();
+     self.nameIndex = cl.index( xlsInfoColumns[0])+1
+     self.polyIndex = cl.index( xlsInfoColumns[1])+1
+     self.modeIndex = cl.index( xlsInfoColumns[2])+1
 
      for xlsFile in xlsFiles:
         self.xlsInfo = self.xlsInfo.append( pd.read_excel( io=xlsFile, parse_cols=xlsInfoColumns, ignore_index=True ) )
