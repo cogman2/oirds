@@ -83,7 +83,7 @@ def outputResult(gtTool, out, transformer, data, rawImage, name, config):
   print 'SHAPE ' + str(out[layerName][0].shape)
   print 'HIST ' + str(np.histogram(classPerPixel))
 
-  if (json_tool.isOutputImage(config)):
+  if (json_tools.isOutputImage(config)):
     ima = transformer.deprocess('data', data)
     print 'DIFF IMAGE ' + str(np.min( rawImage - ima))
     shapeIME =  (classPerPixel.shape[0],classPerPixel.shape[1])
