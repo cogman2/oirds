@@ -40,6 +40,9 @@ def getDataDir(data):
       networkDataDir += "/"
    return networkDataDir
 
+def isOutputImage(data):
+   return data.has_key('outputImage') and data['outputImage']
+
 def dumpBlobs(data):
    return data.has_key('dumpBlobs') and data['dumpBlobs']
 

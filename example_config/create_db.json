@@ -6,5 +6,5 @@
    "resize": 128,
    "percentageToTest":0.18,
    "xlsInfoColumns" : [2,7,9],
-   "modes": ["BACKGROUND","VEHICLE/CAR","VEHICLE/PICK-UP","VEHICLE/TRUCK","VEHICLE/UNKNOWN","VEHICLE/VAN"]
+   "modes": ["VEHICLE/CAR","VEHICLE/PICK-UP","VEHICLE/TRUCK","VEHICLE/UNKNOWN","VEHICLE/VAN"]
 }

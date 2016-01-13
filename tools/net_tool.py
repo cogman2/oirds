@@ -39,20 +39,23 @@ def interp_surgery(net, layers):
 def loadNet(config):
    from caffe.proto import caffe_pb2
    import json_tools
+
+   if(json_tools.isGPU(config)):
+     caffe.set_mode_gpu()
+     caffe.set_device(0)
+
    net = caffe.Net(json_tools.getProtoTxt(config),json_tools.getModelFileName(config), caffe.TEST)
    interp_layers = [k for k in net.params.keys() if 'up' in k]
    if (json_tools.isNetSurgery(config)):
      interp_surgery(net, interp_layers)
+
+
    return net
 
 def runcaffe (net, im, config):
    import numpy
    import json_tools
    from caffe.proto import caffe_pb2
-
-   if(json_tools.isGPU(config)):
-     caffe.set_mode_gpu()
-     caffe.set_device(0)
 
    net.blobs['data'].reshape(1,3,im.shape[0], im.shape[1])
    meanarr = json_tools.getMeanArray(config)

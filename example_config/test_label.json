@@ -1,7 +1,7 @@
 {
    "modelFileName": "/data/oird_fcn/fcn-8s-pascalcontext.caffemodel",
    "xlsInfoColumns" : [2,7,9],
-   "modes": ["BACKGROUND","VEHICLE/CAR","VEHICLE/PICK-UP","VEHICLE/TRUCK","VEHICLE/UNKNOWN","VEHICLE/VAN"],
+   "modes": ["VEHICLE/CAR","VEHICLE/PICK-UP","VEHICLE/TRUCK","VEHICLE/UNKNOWN","VEHICLE/VAN"],
    "dataDirectory": "/data/oirds",
    "imageDirectory": "png",
    "meanarray": [112.0,112.0,112.0],
@@ -14,5 +14,6 @@
    "networkOutputName": "score",
    "useCaffeImage":true,
    "useTransformer":true,
-   "dumpBlobs":false
+   "dumpBlobs":false,
+   "outputImage": true
 }

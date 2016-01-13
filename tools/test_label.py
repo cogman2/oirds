@@ -17,6 +17,7 @@ import numpy as np
 import net_tool
 import json_tools
 import gt_tool
+import compare_tool as ct
 
 def main():
     from pathlib import Path
@@ -41,13 +42,14 @@ def main():
 
     randUniform = random.seed(23361)
     if (json_tools.hasImageName(config)):
-      testNames = set()
-      testNames.add(json_tools.getImageName(config))
+      testNames = set(json_tools.getImageName(config).split(','))
     else:
       testNames = gtTool.getTestNames(json_tools.getPercentageForTest(config))
 
     lastList=[]
     lastname=''
+
+    compareTool = ct.CompareTool()
 
     net = net_tool.loadNet(config)
     #net_tool.dumpNetWeights(net)
@@ -63,32 +65,37 @@ def main():
              result = net_tool.runcaffe(net, rawImage, config)
              if (json_tools.dumpBlobs(config)):
                net_tool.dumpNetFilters(net, runName)
-             classes = outputResult(gtTool, result[0], result[2], result[1], rawImage, runName, json_tools.getNetworkOutputName(config))
+             classes = outputResult(gtTool, result[0], result[2], result[1], rawImage, runName, config)
              gtIm, gtIndex = gtTool.createLabelImageGivenSize(lastList, initialSize, (classes.shape[0], classes.shape[1]), json_tools.getSingleLabel(config))
-             compareResults(txtOut,runName, classes, gtIndex)
+             compareResults(compareTool,txtOut,runName, classes, gtIndex)
 
     gtTool.iterate(f)
+
+    dumpTotals(compareTool, txtOut)
+
     txtOut.close()
 
-def outputResult(gtTool, out, transformer, data, rawImage, name, layerName):
+def outputResult(gtTool, out, transformer, data, rawImage, name, config):
+  layerName = json_tools.getNetworkOutputName(config)
   classPerPixel = out[layerName][0].argmax(axis=0)
+
   print 'RANGE ' + str(np.min(out[layerName][0])) + " to " + str(np.max(out[layerName][0]))
   print 'SHAPE ' + str(out[layerName][0].shape)
   print 'HIST ' + str(np.histogram(classPerPixel))
 
-  ima = transformer.deprocess('data', data)
-  print 'DIFF IMAGE ' + str(np.min( rawImage - ima))
-  shapeIME =  (classPerPixel.shape[0],classPerPixel.shape[1])
-  plt.subplot(1, 2, 1)
-  plt.imshow(rawImage)
+  if (json_tool.isOutputImage(config)):
+    ima = transformer.deprocess('data', data)
+    print 'DIFF IMAGE ' + str(np.min( rawImage - ima))
+    shapeIME =  (classPerPixel.shape[0],classPerPixel.shape[1])
+    plt.subplot(1, 2, 1)
+    plt.imshow(rawImage)
 
-  plt.subplot(1, 2, 2)
-#  imArray = toImageArray(classPerPixel);
-  imArray = overlayImageArray(gtTool, np.copy(rawImage), classPerPixel);
-  plt.imshow(imArray) 
+    plt.subplot(1, 2, 2)
+    imArray = overlayImageArray(gtTool, np.copy(rawImage), classPerPixel);
+    plt.imshow(imArray) 
 
-  plt.savefig(name+'_output')
-  plt.close()
+    plt.savefig(name+'_output')
+    plt.close()
 
   return classPerPixel
 
@@ -102,9 +109,14 @@ def overlayImageArray(gtTool, ima, classPerPixel):
         ima[i,j] = gtTool.get_label_color(classPerPixel[i,j])
   return ima
    
-def compareResults(fo,name, result, gt):
-  stats =  str(gt_tool.compareResults(result, gt[0]))[1:-1]
+def compareResults(compareTool,fo,name, result, gt):
+  stats =  str(compareTool.compareResults(result, gt[0]))[1:-1]
   fo.write(name + ',' + stats)
+  fo.write('\n')
+
+def dumpTotals(compareTool,fo):
+  stats =  str(compareTool.getTotals())[1:-1]
+  fo.write('Totals,' + stats)
   fo.write('\n')
 
 if __name__=="__main__":
