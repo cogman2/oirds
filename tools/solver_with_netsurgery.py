@@ -42,7 +42,7 @@ def main():
 # init
   if(json_tools.isGPU(config)):
     caffe.set_mode_gpu()
-    caffe.set_device(0)
+    caffe.set_device(json_tools.getGpuID(config))
 
   solver = caffe.SGDSolver(json_tools.getProtoTxt(config))
 

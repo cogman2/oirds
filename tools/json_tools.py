@@ -4,6 +4,9 @@ import caffe
 def getAttribute(data, name):
    return data[name]
 
+def getGpuID(data):
+   return data['gpuID'] if data.has_key('gpuID') else 0
+
 def getXLSColumns(data):
    return data['xlsInfoColumns']
 
