@@ -4,6 +4,9 @@ import caffe
 def getAttribute(data, name):
    return data[name]
 
+def getStatsFileName(data):
+   return data['statsFileName'] if data.has_key('statsFileName') else 'stats.txt'
+
 def getGpuID(data):
    return data['gpuID'] if data.has_key('gpuID') else 0
 

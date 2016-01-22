@@ -33,8 +33,11 @@ def main():
     if len(sys.argv) < 2:
       print "Usage: ", sys.argv[0], " config "
       sys.exit( 0 )
+    runTest(sys.argv[0])
 
-    config = json_tools.loadConfig(sys.argv[1])
+def runTest(configFileName):
+
+    config = json_tools.loadConfig(configFileName)
 
     gtTool = gt_tool.GTTool(config)
     gtTool.load()
@@ -54,7 +57,12 @@ def main():
     net = net_tool.loadNet(config)
     #net_tool.dumpNetWeights(net)
 
-    txtOut = open('stats.txt','w');
+    try:
+      os.remove(json_tools.getStatsFileName(config))
+    except OSError:
+      print 'creating: ' + json_tools.getStatsFileName(config)
+      
+    txtOut = open(json_tools.getStatsFileName(config),'w');
 
     def f(lastname, lastList):
           if(lastname in testNames):
