@@ -40,9 +40,11 @@ def loadNet(config):
    from caffe.proto import caffe_pb2
    import json_tools
 
+   caffe.set_device(json_tools.getGpuID(config))
    if(json_tools.isGPU(config)):
      caffe.set_mode_gpu()
-     caffe.set_device(0)
+   else:
+     caffe.set_mode_cpu()
 
    net = caffe.Net(json_tools.getProtoTxt(config),json_tools.getModelFileName(config), caffe.TEST)
    interp_layers = [k for k in net.params.keys() if 'up' in k]
