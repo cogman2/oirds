@@ -8,6 +8,7 @@ import test_label
 import thread
 import time
 import multiprocessing
+from multiprocessing import Process
 import threading
 import Queue
 import json_tools
@@ -70,7 +71,7 @@ class myThread (threading.Thread):
       while (not q.empty()):
         try:
           dir = q.get(5)       
-          p = Process(target=testLabel, args=(os.path.join(cwd,dir),self.configFileName,))
+          p = Process(target=testLabel, args=(os.path.join(self.cwd,dir),self.configFileName,))
           p.start()
           p.join()        
         except Queue.Empty:
@@ -78,6 +79,7 @@ class myThread (threading.Thread):
 
 def testLabel(dir, configFileName):
    os.chdir(dir)
+   print dir
    test_label.runTest("../" + configFileName) 
 
 def getStats(statsFileName, runName):

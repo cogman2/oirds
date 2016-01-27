@@ -86,7 +86,7 @@ def outputImages(name, imageData, gtTool, odn_txn, ods_txn, ldn_txn, lds_txn, te
       labelImage, labelIndices, rawImage = createGTImg(name, imageData, gtTool, config,i>0)
       imageCropSizeMin = 0
       if (json_tools.isResize(config)):
-        imageCropSizeMin = json_tools.getResize(config)
+        imageCropSizeMin = json_tools.getCropSize(config)
       if (rawImage.size[0] < imageCropSizeMin or rawImage.size[1] < imageCropSizeMin):
          print 'skipping'
          return (0,0)
@@ -105,8 +105,21 @@ def outputImages(name, imageData, gtTool, odn_txn, ods_txn, ldn_txn, lds_txn, te
            
 def createGTImg(name, xlsInfoList, gtTool, config, augment):
   initialSize, imRaw= gtTool.loadImage(name)
+  imageCropSizeMin = json_tools.getCropSize(config)
   newImage, labelData = gtTool.createLabelImage(xlsInfoList, initialSize, imRaw, json_tools.getSingleLabel(config), augment)
-  return labelData[0], labelData[1], newImage
+  labelImage = labelData[0]
+  labelIndices = labelData[1]
+  if (newImage.size[0] > imageCropSizeMin):
+     cx = labelData[2][0][0]
+     cy = labelData[2][0][1]
+     cxp = cx - imageCropSizeMin/2
+     cyp = cy - imageCropSizeMin/2
+     cxp = 0 if (cxp < 0) else cxp
+     cyp = 0 if (cyp < 0) else cyp
+     newImage = newImage.crop((cxp, cyp, cxp+imageCropSizeMin, cyp+imageCropSizeMin))
+     labelImage = labelImage.crop((cxp, cyp, cxp+imageCropSizeMin, cyp+imageCropSizeMin))
+     labelIndices = labelIndices[0:1,cxp:cxp+imageCropSizeMin, cyp:cyp+imageCropSizeMin]
+  return labelImage, labelIndices, newImage
    
 def outGT (im, out_txn, idx):
    import caffe

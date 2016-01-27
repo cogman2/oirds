@@ -71,8 +71,10 @@ def isResize(data):
    return data.has_key('resize')
 
 def getResize(data):
-   import numpy as np
    return int(data['resize'])
+
+def getCropSize(data):
+   return data['cropSize'] if data.has_key('cropSize') else getResize(data)
 
 def isSingleLabel(data):
    return data.has_key('labelIndex')

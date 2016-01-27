@@ -32,6 +32,9 @@ def resizePoly(poly, initialSize, finalSize):
    hpercent = (finalSize[1]/float(initialSize[1]))
    return transform(lambda x, y, z=None: (x*wpercent,y*hpercent), poly)
 
+def centers(polyList):
+   return [((polyObjTuple[0].bounds[2] - polyObjTuple[0].bounds[0])/2, (polyObjTuple[0].bounds[3] - polyObjTuple[0].bounds[1])/2) for polyObjTuple in polyList]
+
 def augmentImage(inputImg, polyList):
     import numpy as np
     newImg = inputImg
@@ -252,7 +255,7 @@ class GTTool:
           placePolyInImage(imLabel, polyObjTuple[0], indices, polyObjTuple[1], self.get_label_color(polyObjTuple[1]))
       except:
           continue
-    return imLabel, indices
+    return imLabel, indices, centers(polyList)
 
   def get_label_color(self, colorIndex):
      import numpy as np

@@ -20,10 +20,7 @@ import gt_tool
 import compare_tool as ct
 
 def main():
-    from pathlib import Path
     import os
-    import random
-    import pandas as pd
     import sys
     if sys.version_info[0] < 3:
         from StringIO import StringIO
@@ -33,15 +30,17 @@ def main():
     if len(sys.argv) < 2:
       print "Usage: ", sys.argv[0], " config "
       sys.exit( 0 )
-    runTest(sys.argv[0])
+    runTest(sys.argv[1])
 
 def runTest(configFileName):
+    import os
+    import random
+    import sys
 
     config = json_tools.loadConfig(configFileName)
 
     gtTool = gt_tool.GTTool(config)
     gtTool.load()
-
 
     randUniform = random.seed(23361)
     if (json_tools.hasImageName(config)):
@@ -74,7 +73,7 @@ def runTest(configFileName):
              if (json_tools.dumpBlobs(config)):
                net_tool.dumpNetFilters(net, runName)
              classes = outputResult(gtTool, result[0], result[2], result[1], rawImage, runName, config)
-             gtIm, gtIndex = gtTool.createLabelImageGivenSize(lastList, initialSize, (classes.shape[0], classes.shape[1]), json_tools.getSingleLabel(config))
+             gtIm, gtIndex, gtPositions = gtTool.createLabelImageGivenSize(lastList, initialSize, (classes.shape[0], classes.shape[1]), json_tools.getSingleLabel(config))
              compareResults(compareTool,txtOut,runName, classes, gtIndex)
 
     gtTool.iterate(f)
