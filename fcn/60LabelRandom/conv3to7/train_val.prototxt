@@ -7,10 +7,10 @@ layer {
     phase: TRAIN
   }
   transform_param {
-    mean_file: "../../train_mean.binaryproto"
+    mean_file: "../train_mean.binaryproto"
   }
   data_param {
-    source: "../../raw_train"
+    source: "../raw_train"
     batch_size: 1
     backend: LMDB
   }
@@ -23,7 +23,7 @@ layer {
     phase: TRAIN
   }
   data_param {
-    source: "../../groundtruth_train"
+    source: "../groundtruth_train"
     batch_size: 1
     backend: LMDB
   }
@@ -36,10 +36,10 @@ layer {
     phase: TEST
   }
   transform_param {
-    mean_file: "../../test_mean.binaryproto"
+    mean_file: "../test_mean.binaryproto"
   }
   data_param {
-    source: "../../raw_test"
+    source: "../raw_test"
     batch_size: 1
     backend: LMDB
   }
@@ -52,7 +52,7 @@ layer {
     phase: TEST
   }
   data_param {
-    source: "../../groundtruth_test"
+    source: "../groundtruth_test"
     batch_size: 1
     backend: LMDB
   }
