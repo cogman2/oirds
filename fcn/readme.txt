@@ -2,6 +2,7 @@ Steps for each of these training configuration sets:
 (1) Create Traing DB
   python oirds/tools/fcn/python/create_train_dbs.py create_db.json
   *Recall that the training data must be in a directory with the Excel files and a png sub-directory with the images.
+  * There are a host of data directories used to configure the ten fold cross validation.
 (2) Compute the means
   /opt/fcn/bin/compute_image_mean.bin raw_train train_mean.binaryproto
   /opt/fcn/bin/compute_image_mean.bin raw_test test_mean.binaryproto

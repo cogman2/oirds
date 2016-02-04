@@ -177,32 +177,35 @@ class GTTool:
 
      self.xlsInfo = self.xlsInfo.reset_index()
 
-  def getTestNames(self, percent):
+  def getTestNames(self, percent, testSlice):
      testNames= set()
      labelCounts = [0 for i in xrange(len(self.label_colors))]
+     startCounts = [0 for i in xrange(len(self.label_colors))]
      for i,r in self.xlsInfo.iterrows():  
-       labelCounts[self.modeIndices[r[self.modeIndex]]+1] += 1
+        labelCounts[self.modeIndices[r[self.modeIndex]]+1] += 1
      for i in xrange(len(labelCounts)):
-       labelCounts[i] = int(labelCounts[i]*percent)
-     for i in np.random.permutation(len(self.xlsInfo)):
+        labelCounts[i] = int(labelCounts[i]*percent)
+        if (testSlice != None):
+           startCounts[i] = labelCounts[i]*(testSlice-1)
+     order = np.random.permutation(len(self.xlsInfo)) if testSlice == None else range(0,len(self.xlsInfo))
+     for i in order:
         if(labelCounts[self.modeIndices[self.xlsInfo.iloc[i,self.modeIndex]]+1] > 0):
-          testNames.add(self.xlsInfo.iloc[i,self.nameIndex])
-          labelCounts[self.modeIndices[self.xlsInfo.iloc[i,self.modeIndex]]+1] -= 1
+          if (startCounts[self.modeIndices[self.xlsInfo.iloc[i,self.modeIndex]]+1] >0):
+              startCounts[self.modeIndices[self.xlsInfo.iloc[i,self.modeIndex]]+1] -= 1
+          else:
+             testNames.add(self.xlsInfo.iloc[i,self.nameIndex])
+             labelCounts[self.modeIndices[self.xlsInfo.iloc[i,self.modeIndex]]+1] -= 1
      return testNames
 
-
   def iterate(self,f):
-    lastname=''
-    lastList=[]
-    for i,r in self.xlsInfo.iterrows():
-       if (lastname!= r[self.nameIndex] and len(lastList) > 0):
-           f(lastname, lastList)
-           lastList=[]
-       else:
-           lastList.append(r)
-       lastname=r[self.nameIndex]
-    if (len(lastList) > 0):
-           f(lastname, lastList)
+    sets = dict()
+    for i,r in self.xlsInfo.iterrows():  
+       name = r[self.nameIndex]
+       recs = sets[name] if (sets.has_key(name)) else []
+       recs.append(r)
+       sets[name] = recs
+    for name in np.random.permutation(sets.keys()):
+       f(name, sets[name])
 
   def loadImage(self, name):
     from PIL import Image
@@ -221,14 +224,17 @@ class GTTool:
     polyList=list()
     for r in xlsInfoList:
       poly = r[self.polyIndex].replace("[",'(').replace("]","").replace(";",",")
-      beg = poly[1:poly.index(',')]
-      poly = 'POLYGON (' + poly + ',' + beg + '))'
-      polyObj = loads(poly)
-      polyObj = resizePoly(polyObj, initialSize, finalSize)
-      colorIndex = self.modeIndices[r[self.modeIndex]]+1
-      if (singleLabelIndex>=0):
-         colorIndex= singleLabelIndex
-      polyList.append((polyObj,colorIndex))
+      try:
+        beg = poly[1:poly.index(',')]
+        poly = 'POLYGON (' + poly + ',' + beg + '))'
+        polyObj = loads(poly)
+        polyObj = resizePoly(polyObj, initialSize, finalSize)
+        colorIndex = self.modeIndices[r[self.modeIndex]]+1
+        if (singleLabelIndex>=0):
+           colorIndex= singleLabelIndex
+        polyList.append((polyObj,colorIndex))
+      except ValueError:
+        continue 
     return polyList
 
   def createLabelImageGivenSize(self, xlsInfoList, initialSize, finalSize, singleLabelIndex):
