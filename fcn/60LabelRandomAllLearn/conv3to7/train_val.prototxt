@@ -1,0 +1,660 @@
+name: "FCN"
+layer {
+  name: "data"
+  type: "Data"
+  top: "data"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    mean_file: "../train_mean.binaryproto"
+  }
+  data_param {
+    source: "../raw_train"
+    batch_size: 1
+    backend: LMDB
+  }
+}
+layer {
+  name: "label"
+  type: "Data"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  data_param {
+    source: "../groundtruth_train"
+    batch_size: 1
+    backend: LMDB
+  }
+}
+layer {
+  name: "data"
+  type: "Data"
+  top: "data"
+  include {
+    phase: TEST
+  }
+  transform_param {
+    mean_file: "../test_mean.binaryproto"
+  }
+  data_param {
+    source: "../raw_test"
+    batch_size: 1
+    backend: LMDB
+  }
+}
+layer {
+  name: "label"
+  type: "Data"
+  top: "label"
+  include {
+    phase: TEST
+  }
+  data_param {
+    source: "../groundtruth_test"
+    batch_size: 1
+    backend: LMDB
+  }
+}
+
+layer {
+  name: "conv1_1"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1_1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 64
+    pad: 100
+    kernel_size: 3
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu1_1"
+  type: "ReLU"
+  bottom: "conv1_1"
+  top: "conv1_1"
+}
+layer {
+  name: "conv1_2"
+  type: "Convolution"
+  bottom: "conv1_1"
+  top: "conv1_2"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 64
+    pad: 1
+    kernel_size: 3
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu1_2"
+  type: "ReLU"
+  bottom: "conv1_2"
+  top: "conv1_2"
+}
+layer {
+  name: "pool1"
+  type: "Pooling"
+  bottom: "conv1_2"
+  top: "pool1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "conv2_1"
+  type: "Convolution"
+  bottom: "pool1"
+  top: "conv2_1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 128
+    pad: 1
+    kernel_size: 3
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu2_1"
+  type: "ReLU"
+  bottom: "conv2_1"
+  top: "conv2_1"
+}
+layer {
+  name: "conv2_2"
+  type: "Convolution"
+  bottom: "conv2_1"
+  top: "conv2_2"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 128
+    pad: 1
+    kernel_size: 3
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu2_2"
+  type: "ReLU"
+  bottom: "conv2_2"
+  top: "conv2_2"
+}
+layer {
+  name: "pool2"
+  type: "Pooling"
+  bottom: "conv2_2"
+  top: "pool2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "conv3_1rand"
+  type: "Convolution"
+  bottom: "pool2"
+  top: "conv3_1rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    pad: 1
+    kernel_size: 3
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu3_1rand"
+  type: "ReLU"
+  bottom: "conv3_1rand"
+  top: "conv3_1rand"
+}
+layer {
+  name: "conv3_2rand"
+  type: "Convolution"
+  bottom: "conv3_1rand"
+  top: "conv3_2rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    pad: 1
+    kernel_size: 3
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu3_2rand"
+  type: "ReLU"
+  bottom: "conv3_2rand"
+  top: "conv3_2rand"
+}
+layer {
+  name: "conv3_3rand"
+  type: "Convolution"
+  bottom: "conv3_2rand"
+  top: "conv3_3rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    pad: 1
+    kernel_size: 3
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu3_3rand"
+  type: "ReLU"
+  bottom: "conv3_3rand"
+  top: "conv3_3rand"
+}
+layer {
+  name: "pool3rand"
+  type: "Pooling"
+  bottom: "conv3_3rand"
+  top: "pool3rand"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "conv4_1rand"
+  type: "Convolution"
+  bottom: "pool3rand"
+  top: "conv4_1rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu4_1"
+  type: "ReLU"
+  bottom: "conv4_1rand"
+  top: "conv4_1rand"
+}
+layer {
+  name: "conv4_2rand"
+  type: "Convolution"
+  bottom: "conv4_1rand"
+  top: "conv4_2rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu4_2"
+  type: "ReLU"
+  bottom: "conv4_2rand"
+  top: "conv4_2rand"
+}
+layer {
+  name: "conv4_3rand"
+  type: "Convolution"
+  bottom: "conv4_2rand"
+  top: "conv4_3rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu4_3"
+  type: "ReLU"
+  bottom: "conv4_3rand"
+  top: "conv4_3rand"
+}
+layer {
+  name: "pool4rand"
+  type: "Pooling"
+  bottom: "conv4_3rand"
+  top: "pool4rand"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "conv5_1rand"
+  type: "Convolution"
+  bottom: "pool4rand"
+  top: "conv5_1rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu5_1rand"
+  type: "ReLU"
+  bottom: "conv5_1rand"
+  top: "conv5_1rand"
+}
+layer {
+  name: "conv5_2rand"
+  type: "Convolution"
+  bottom: "conv5_1rand"
+  top: "conv5_2rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu5_2"
+  type: "ReLU"
+  bottom: "conv5_2rand"
+  top: "conv5_2rand"
+}
+layer {
+  name: "conv5_3rand"
+  type: "Convolution"
+  bottom: "conv5_2rand"
+  top: "conv5_3rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu5_3"
+  type: "ReLU"
+  bottom: "conv5_3rand"
+  top: "conv5_3rand"
+}
+layer {
+  name: "pool5"
+  type: "Pooling"
+  bottom: "conv5_3rand"
+  top: "pool5"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "fc6rand"
+  type: "Convolution"
+  bottom: "pool5"
+  top: "fc6rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 4096
+    kernel_size: 7
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu6"
+  type: "ReLU"
+  bottom: "fc6rand"
+  top: "fc6rand"
+}
+layer {
+  name: "drop6"
+  type: "Dropout"
+  bottom: "fc6rand"
+  top: "fc6rand"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layer {
+  name: "fc7rand"
+  type: "Convolution"
+  bottom: "fc6rand"
+  top: "fc7rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 4096
+    kernel_size: 1
+    engine: CAFFE
+  }
+}
+layer {
+  name: "relu7"
+  type: "ReLU"
+  bottom: "fc7rand"
+  top: "fc7rand"
+}
+layer {
+  name: "drop7"
+  type: "Dropout"
+  bottom: "fc7rand"
+  top: "fc7rand"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layer {
+  name: "score59rand"
+  type: "Convolution"
+  bottom: "fc7rand"
+  top: "score59rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 60
+    kernel_size: 1
+    engine: CAFFE
+  }
+}
+layer {
+  name: "upscore2rand"
+  type: "Deconvolution"
+  bottom: "score59rand"
+  top: "upscore2rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  convolution_param {
+    num_output: 60
+    bias_term: false
+    kernel_size: 4
+    stride: 2
+  }
+}
+layer {
+  name: "score-pool4rand"
+  type: "Convolution"
+  bottom: "pool4rand"
+  top: "score-pool4rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 60
+    kernel_size: 1
+    engine: CAFFE
+  }
+}
+layer { type: 'Crop' name: 'crop' bottom: 'score-pool4rand' bottom: 'upscore2rand'
+  top: 'score-pool4randc' }
+layer {
+  name: "fuse"
+  type: "Eltwise"
+  bottom: "upscore2rand"
+  bottom: "score-pool4randc"
+  top: "score-fused"
+  eltwise_param {
+    operation: SUM
+  }
+}
+layer {
+  name: "upsample-fused-16rand"
+  type: "Deconvolution"
+  bottom: "score-fused"
+  top: "score4"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  convolution_param {
+    num_output: 60
+    bias_term: false
+    kernel_size: 4
+    stride: 2
+  }
+}
+layer {
+  name: "score-pool3rand"
+  type: "Convolution"
+  bottom: "pool3rand"
+  top: "score-pool3rand"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 60
+    kernel_size: 1
+    engine: CAFFE
+  }
+}
+layer { type: 'Crop' name: 'crop' bottom: 'score-pool3rand' bottom: 'score4'
+  top: 'score-pool3crand' }
+layer {
+  name: "fuse"
+  type: "Eltwise"
+  bottom: "score4"
+  bottom: "score-pool3crand"
+  top: "score-final"
+  eltwise_param {
+    operation: SUM
+  }
+}
+layer {
+  name: "upsample"
+  type: "Deconvolution"
+  bottom: "score-final"
+  top: "bigscore"
+  param {
+    lr_mult: 0
+  }
+  convolution_param {
+    num_output: 60
+    bias_term: false
+    kernel_size: 16
+    stride: 8
+  }
+}
+layer { type: 'Crop' name: 'crop' bottom: 'bigscore' bottom: 'data' top: 'score' }
+layer {
+  name: "loss"
+  type: "SoftmaxWithLoss"
+  bottom: "score"
+  bottom: "label"
+  top: "loss"
+  loss_param {
+    normalize: false
+  }
+}

@@ -1,0 +1,8 @@
+{
+   "modelFileName": "/data/pascal2012/fcn-8s-pascalcontext.caffemodel",
+   "prototxt" : "solver.prototxt",
+   "netsurgery": true,
+   "gpuID":2,
+   "steps":20000,
+   "gpu": true
+}
