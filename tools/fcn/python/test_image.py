@@ -36,15 +36,17 @@ def main():
 
     net = net_tool.loadNet(config)
 
-    im = loadImgArray(sys.argv[1], gtTool);
+    im = loadImgArray(sys.argv[1], gtTool,config);
 
     print im.shape
 
     result = net_tool.runcaffe(net, im, config)
+    if (json_tools.dumpBlobs(config)):
+       net_tool.dumpNetFilters(net, sys.argv[1][0:sys.argv[1].find('.')])
 
     outputResult(result[0], result[2], result[1], im, config)
 
-def loadImgArray(name, gtTool):
+def loadImgArray(name, gtTool,config):
    from PIL import Image
    print name + '-----------'
    initialiSize, imRaw = gtTool.loadImage(name)

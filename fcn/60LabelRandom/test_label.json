@@ -1,0 +1,20 @@
+{
+   "modelFileName": "train_iter_15000.caffemodel",
+   "xlsInfoColumns" : [2,7,9],
+   "modes": ["VEHICLE/CAR","VEHICLE/PICK-UP","VEHICLE/TRUCK","VEHICLE/UNKNOWN","VEHICLE/VAN"],
+   "dataDirectory": "/data/oirds",
+   "imageDirectory": "png",
+   "statsFileName": "stats_15000.csv",
+   "meanproto": "../../train_mean.binaryproto",
+   "prototxt": "deploy.prototxt",
+   "netsurgery": true,
+   "gpu":false,
+   "resize" :  256,
+   "labelIndex": 7,
+   "percentageToTest": 1,
+   "networkOutputName": "score",
+   "useCaffeImage":true,
+   "useTransformer":true,
+   "dumpBlobs":false,
+   "outputImage": false
+}

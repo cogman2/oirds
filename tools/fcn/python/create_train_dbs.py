@@ -56,7 +56,8 @@ def main():
     label_db_train = lmdb.open('groundtruth_train', map_size=int(4294967296))
     label_db_test = lmdb.open('groundtruth_test', map_size=int(4294967296))
 
-    testNames = gtTool.getTestNames(json_tools.getPercentageForTest(config))
+    testSlice = json_tools.getTestSlice(config) if json_tools.hasTestSlice(config)  else None
+    testNames = gtTool.getTestNames(json_tools.getPercentageForTest(config), testSlice)
 
     with out_db_train.begin(write=True) as odn_txn:
      with out_db_test.begin(write=True) as ods_txn:

@@ -1,0 +1,8 @@
+{
+   "modelFileName": "/home/rwgdrummer/fcn-8s-pascal.caffemodel",
+   "prototxt" : "solver.prototxt",
+   "netsurgery": true,
+   "gpu": true,
+   "gpuID":1,
+   "steps":20000
+}

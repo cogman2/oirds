@@ -1,0 +1,11 @@
+{
+   "dataDirectory": "/data/oirds",
+   "xlsInfoColumns" : [2,7,9],
+   "modes": ["VEHICLE/CAR","VEHICLE/PICK-UP","VEHICLE/TRUCK","VEHICLE/UNKNOWN","VEHICLE/VAN"],
+   "imageDirectory": "png",
+   "multiplicationFactor": 1,
+   "labelIndex": 7,
+   "resize": 256,
+   "percentageToTest":0.10,
+   "testSlice": 1
+}

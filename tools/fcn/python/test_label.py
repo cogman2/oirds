@@ -46,7 +46,8 @@ def runTest(configFileName):
     if (json_tools.hasImageName(config)):
       testNames = set(json_tools.getImageName(config).split(','))
     else:
-      testNames = gtTool.getTestNames(json_tools.getPercentageForTest(config))
+      testSlice = json_tools.getTestSlice(config) if json_tools.hasTestSlice(config)  else None
+      testNames = gtTool.getTestNames(json_tools.getPercentageForTest(config),testSlice)
 
     lastList=[]
     lastname=''

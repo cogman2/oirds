@@ -10,6 +10,12 @@ def getStatsFileName(data):
 def getGpuID(data):
    return data['gpuID'] if data.has_key('gpuID') else 0
 
+def hasTestSlice(data):
+   return data.has_key('testSlice')
+
+def getTestSlice(data):
+   return data['testSlice']
+
 def getXLSColumns(data):
    return data['xlsInfoColumns']
 
