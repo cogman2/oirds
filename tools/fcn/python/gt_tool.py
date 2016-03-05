@@ -1,39 +1,13 @@
-
 import json_tools
 import numpy as np
 import pandas as pd
 from PIL import Image
 
-def placePolyInImage(img, poly, indices, colorIndex, color):
-    from shapely.geometry import Point
-    width, length = img.size
-    bounds = poly.bounds
-    for x in (xrange(int(bounds[0]),int(bounds[2]))):
-       for y in (xrange(int(bounds[1]),int(bounds[3]))):
-         if poly.contains(Point(x, y)):
-           img.putpixel((x, y), color)
-           indices[0,x,y]=colorIndex
-
-
 
 def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
 
-def resizeImg(im, imageCropSize):
-   wpercent = (imageCropSize/float(im.size[0]))
-   hsize = int((float(im.size[1])*float(wpercent)))
-   return im.resize((imageCropSize ,hsize),Image.ANTIALIAS).crop((0,0,imageCropSize, imageCropSize))
 
-
-def resizePoly(poly, initialSize, finalSize):
-   from shapely.geometry import polygon
-   from shapely.ops import transform
-   wpercent = (finalSize[0]/float(initialSize[0]))
-   hpercent = (finalSize[1]/float(initialSize[1]))
-   return transform(lambda x, y, z=None: (x*wpercent,y*hpercent), poly)
-
-def centers(polyList):
-   return [((polyObjTuple[0].bounds[2] - polyObjTuple[0].bounds[0])/2, (polyObjTuple[0].bounds[3] - polyObjTuple[0].bounds[1])/2) for polyObjTuple in polyList]
 
 def augmentImage(inputImg, polyList):
     import numpy as np
@@ -86,49 +60,6 @@ def moveImageBlock(image, poly, deltaX, deltaY):
      newImage.paste(partL, newBounds)
      return newImage
   
-def movePoly(polyObjTuple, deltaX, deltaY, newPolyList):
-     from shapely import affinity
-     translatedPoly = affinity.translate(polyObjTuple[0],deltaX, deltaY)
-     for newPolyTuple in newPolyList:
-       if (newPolyTuple[0].intersects(translatedPoly)):
-         return False
-     newPolyList.append((translatedPoly, polyObjTuple[1]))
-     return True
-
-
-def rotatePoly(polyList, angle, centroid):
-     from shapely import affinity
-     newPolyList = list()
-     for polyTuple in polyList: 
-        newPolyList.append((affinity.rotate(polyTuple[0], angle, origin=centroid), polyTuple[1]))
-     return newPolyList
-
-def rollPoly(polyList, sizes, delta):
-      from shapely import affinity
-      xsize, ysize = sizes
-      xsize = int(delta * xsize)
-      newPolyList = list()
-      for polyTuple in polyList: 
-        bounds = polyTuple[0].bounds
-        if (bounds[2] < xsize):
-           newPolyList.append((affinity.translate(polyTuple[0],xoff=xsize, yoff=0.0, zoff=0.0), polyTuple[1]))
-        elif (bounds[0] > xsize):
-          newPolyList.append((affinity.translate(polyTuple[0],xoff=-xsize, yoff=0.0, zoff=0.0),polyTuple[1]))
-        else:
-          return list()
-      return newPolyList
-
-def rollImage(image, delta):
-     "Roll an image sideways"
-
-     xsize, ysize = image.size
-     splitX = int(xsize * delta)
-     partL = image.crop((0, 0, splitX, ysize))
-     partR = image.crop((splitX, 0, xsize, ysize))
-     image.paste(partR, (0, 0, xsize-splitX, ysize))
-     image.paste(partL, (xsize-splitX, 0, xsize, ysize))
-     return image
-
 
 class GTTool:
   """A Class to manage creation of ground truth and image set databases"""
@@ -144,6 +75,7 @@ class GTTool:
   config=dict()
   parentDataDir='.'
   xlsInfo = pd.DataFrame()
+
 
   def __init__(self, config):
      self.config = config
@@ -211,14 +143,11 @@ class GTTool:
     from PIL import Image
     fileName = self.parentDataDir + json_tools.getImageDirectory(self.config) + "/" + name[0:name.rindex('.')] + '.png'
     imRaw = Image.open(fileName)
-    initialSize = imRaw.size
-    if (json_tools.isResize(self.config)):
-      imRaw = resizeImg(imRaw, json_tools.getResize(self.config))
     if (json_tools.isGray(self.config)):
       imRaw = rgb2gray(imRaw)
-    return initialSize, imRaw
+    return imRaw
 
-  def getPolysForImage(self, xlsInfoList, initialSize, finalSize, singleLabelIndex): 
+  def getPolysForImage(self, xlsInfoList, finalSize, singleLabelIndex): 
     from shapely.wkt import dumps, loads
     from shapely.geometry import polygon
     polyList=list()
@@ -228,40 +157,18 @@ class GTTool:
         beg = poly[1:poly.index(',')]
         poly = 'POLYGON (' + poly + ',' + beg + '))'
         polyObj = loads(poly)
-        polyObj = resizePoly(polyObj, initialSize, finalSize)
+#        polyObj = resizePoly(polyObj, finalSize, finalSize)
         colorIndex = self.modeIndices[r[self.modeIndex]]+1
         if (singleLabelIndex>=0):
            colorIndex= singleLabelIndex
-        polyList.append((polyObj,colorIndex))
+        polyList.append((polyObj,colorIndex, get_label_colors(colorIndex)))
       except ValueError:
         continue 
     return polyList
 
-  def createLabelImageGivenSize(self, xlsInfoList, initialSize, finalSize, singleLabelIndex):
-    polyList  = self.getPolysForImage(xlsInfoList, initialSize,finalSize, singleLabelIndex)
-    return self.placePolysInImage(polyList,finalSize)
-
-  def createLabelImage(self, xlsInfoList, initialSize, inputImg, singleLabelIndex, augment):
-    polyList  = self.getPolysForImage(xlsInfoList, initialSize, inputImg.size, singleLabelIndex)
-    if (augment):
-      newPolyList = list()
-      newImage = inputImg
-      while(len(newPolyList)==0):
-         newImage, newPolyList = augmentImage(inputImg,polyList)
-      return newImage,self.placePolysInImage(newPolyList, inputImg.size)
-    return inputImg, self.placePolysInImage(polyList, inputImg.size)
-
-
-  def placePolysInImage(self, polyList, finalSize):
-    import numpy as np
-    imLabel = Image.new("RGB", finalSize, color=(0,0,0))
-    indices = np.zeros((1,finalSize[0],finalSize[1]),dtype=np.uint8)
-    for polyObjTuple in polyList:
-      try:
-          placePolyInImage(imLabel, polyObjTuple[0], indices, polyObjTuple[1], self.get_label_color(polyObjTuple[1]))
-      except:
-          continue
-    return imLabel, indices, centers(polyList)
+  def createLabelImage(self, xlsInfoList, inputImg, singleLabelIndex):
+    polyList  = self.getPolysForImage(xlsInfoList, inputImg.size, singleLabelIndex)
+    return new IMSet(inputImg, polyList)
 
   def get_label_color(self, colorIndex):
      import numpy as np
