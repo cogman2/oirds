@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # Used to build the training images for a labeled data set.
 # each training image is black (0,0,0).  The polygons representing each label
@@ -69,7 +70,6 @@ def main():
     label_db_test.close()
     sys.exit(0)
 
-
 def  writeOutImages(gtTool, odn_txn, ods_txn, ldn_txn, lds_txn, testNames, config):
     test_idx = [0]
     train_idx = [0]
@@ -79,8 +79,8 @@ def  writeOutImages(gtTool, odn_txn, ods_txn, ldn_txn, lds_txn, testNames, confi
         train_idx[0] = train_idx[0] +  idxUpdates[0]
     gtTool.iterate(f)
 
-def echoFunction(x,y,z):
-  return x,y,z
+def echoFunction(x):
+  return x
 
 def getAugmentFunctions(config):
   return [echoFunction]
@@ -88,26 +88,24 @@ def getAugmentFunctions(config):
 def outputImages(name, imageData, gtTool, odn_txn, ods_txn, ldn_txn, lds_txn, testNames, test_idx, train_idx,config):
    print name + '-----------'
    c = 0;
-   oRawImage, olabelImage, olabelIndices =  createGTImg(name, imageData, gtTool, config)
+   imSet = createImgSet(name, imageData, gtTool, config)
    imageCropSize = json_tools.getCropSize(config)
    slide = json_tools.getSlide(config)
    if (imageCropSize == 0):
-     imageCropSize = min(oRawImage.size[0], oRawImage.size[1])
+     imageCropSize = min(imSet.getImgShape()[0], imSet.getImgShape()[1])
    imageResize = imageCropSize
    if (json_tools.isResize(config)):
       imageResize = json_tools.getResize(config)
-   if (oRawImage.size[0] < imageCropSize or oRawImage.size[1] < imageCropSize):
+   if (imSet.getImgShape()[0] < imageCropSize or imSet.getImgShape()[1] < imageCropSize):
       print 'skipping'
       return (0,0)
    augmentFunctions = getAugmentFunctions(config)
    for augmentFunction in augmentFunctions:
-      (aRawImage, aLabelImage, aLabelIndices) = augmentFunction(oRawImage, olabelImage, olabelIndices)
-      for (labelImage, labelIndices, rawImage) in imageSetFromCroppedImage(aRawImage, aLabelImage, aLabelIndices, aRawImage.size, slide):
-        if (imageResize != imageCropSize):
-          rawImage = resizeImg(rawImage,imageResize)
-          labelImage = resizeImg(labelImage,imageResize)
-          labelIndices = resizeImg(labelIndices,imageResize)
-
+      augmentedImSet = augmentFunction(imSet)
+      for croppedImSet in imSet.imageSetFromCroppedImage(imageCropSize, slide):
+        if (imageResize != croppedImSet.getImgShape()[0]):
+          croppedImSet = croppedImSet.resize(imageResize)
+        labelImage, labelIndices, centers = croppedImSet.placePolysInImage()
         labelImage.save("./png_gt/" + name[0:name.rindex('.')] + "_" + str(i) + ".png")
         rawImage.save("./png_raw/"  + name[0:name.rindex('.')] + "_" + str(i) + ".png")
         c += 1
@@ -119,37 +117,10 @@ def outputImages(name, imageData, gtTool, odn_txn, ods_txn, ldn_txn, lds_txn, te
            outGTLabel(labelIndices, ldn_txn, train_idx+i)
    return (0,c) if (name in testNames) else (c,0)
 
-def resizeImg(im, imageCropSize):
-   wpercent = (imageCropSize/float(im.size[0]))
-   hsize = int((float(im.size[1])*float(wpercent)))
-   return im.resize((imageCropSize ,hsize),Image.ANTIALIAS).crop((0,0,imageCropSize, imageCropSize))
 
-def imageSetFromCroppedImage( rawImage,labelImage, labelIndices, imageSize, imageCropSize, slide ):
-  cx = imageSize[0] / slide
-  cy = imageSize[1] / slide
-  result = []
-  for xi in xrange(int(cx)):
-    for yi in xrange(int(cy)):
-       result.append(cropImageAt(cx*slide, cxy*slide, imageCropSize, rawImage, labelImage, labelIndices, imageSize))
-  return result
-
-def createGTImg(name, xlsInfoList, gtTool, config):
+def createImgSet(name, xlsInfoList, gtTool, config):
   imRaw= gtTool.loadImage(name)
-  newImage, labelData = gtTool.createLabelImage(xlsInfoList, imRaw, json_tools.getSingleLabel(config))
-  labelImage = labelData[0]
-  labelIndices = labelData[1]
-  return newImage, labelImage, labelIndices
-
-def cdropImageAt(cxp, cxy, imageCropSize, rawImage, labelImage, labelIndices, imageSize):
-  cx = labelData[2][0][0]
-  cy = labelData[2][0][1]
-  cxe = max(cxp+imageCropSize, imageSize[0])
-  cye = max(cxy+imageCropSize, imageSize[1])
-  orawImage = newImage.crop((cxp, cyp,cxe, cye))
-  olabelImage = labelImage.crop((cxp, cyp, cxe, cye))
-  olabelIndices = labelIndices[0:1,cxp:cye,cyp:cye]
-  return orawImage, olabelImage, olabelIndices
-
+  return gtTool.createImageSet(xlsInfoList, imRaw, json_tools.getSingleLabel(config))
    
 def outGT (im, out_txn, idx):
    import caffe

@@ -2,65 +2,12 @@ import json_tools
 import numpy as np
 import pandas as pd
 from PIL import Image
+import image_set
 
 
 def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
-
-
-
-def augmentImage(inputImg, polyList):
-    import numpy as np
-    newImg = inputImg
-    newPolyList = list()
-    for polyObjTuple in polyList:
-      while True:
-        xwidth = polyObjTuple[0].bounds[2] - polyObjTuple[0].bounds[0]
-        ywidth = polyObjTuple[0].bounds[3] - polyObjTuple[0].bounds[1]
-        randXPixel = np.random.randint(0,inputImg.size[0])+1
-        randYPixel = np.random.randint(0,inputImg.size[1])+1
-        deltaX = int(randXPixel - polyObjTuple[0].bounds[0])
-        deltaY = int(randYPixel - polyObjTuple[0].bounds[1])
-        if (deltaX < 0): 
-          deltaX = min(deltaX,-xwidth-1)
-        else:
-          deltaX = max(deltaX,xwidth+1)
-   
-        if (deltaY < 0): 
-          deltaY = min(deltaY,-ywidth-1)
-        else:
-          deltaY = max(deltaY,ywidth+1)
-
-        if (deltaX + polyObjTuple[0].bounds[0] < 1):
-          deltaX = -polyObjTuple[0].bounds[0] + 1;
-        if (deltaX + polyObjTuple[0].bounds[0] > inputImg.size[0]-1):
-          deltaX = inputImg.size[0]-polyObjTuple[0].bounds[0]-1;
-
-        if (deltaY + polyObjTuple[0].bounds[1] < 1):
-          deltaY = -polyObjTuple[0].bounds[1] + 1;
-        if (deltaY + polyObjTuple[0].bounds[1] > inputImg.size[1]-1):
-          deltaY = inputImg.size[1]-polyObjTuple[0].bounds[1]-1;
-
-        if (movePoly(polyObjTuple, deltaX, deltaY, newPolyList)):
-           newImg = moveImageBlock(newImg, polyObjTuple[0], deltaX, deltaY)
-           break
-    return newImg, newPolyList
-
-def moveImageBlock(image, poly, deltaX, deltaY):
-     import numpy as np
-     newImage = image.copy()
-     newBounds = (int(np.floor(poly.bounds[0])+deltaX), \
-                  int(np.floor(poly.bounds[1])+deltaY), \
-                  int(np.ceil(poly.bounds[2])+deltaX), \
-                  int(np.ceil(poly.bounds[3])+deltaY))
-     oldBounds = (int(np.floor(poly.bounds[0])),int(np.floor(poly.bounds[1])),int(np.ceil(poly.bounds[2])),int(np.ceil(poly.bounds[3])))
-     partL = image.crop(oldBounds)
-     partR = image.crop(newBounds)
-     newImage.paste(partR, oldBounds)
-     newImage.paste(partL, newBounds)
-     return newImage
   
-
 class GTTool:
   """A Class to manage creation of ground truth and image set databases"""
 
@@ -157,21 +104,19 @@ class GTTool:
         beg = poly[1:poly.index(',')]
         poly = 'POLYGON (' + poly + ',' + beg + '))'
         polyObj = loads(poly)
-#        polyObj = resizePoly(polyObj, finalSize, finalSize)
         colorIndex = self.modeIndices[r[self.modeIndex]]+1
         if (singleLabelIndex>=0):
            colorIndex= singleLabelIndex
-        polyList.append((polyObj,colorIndex, get_label_colors(colorIndex)))
+        polyList.append((polyObj,colorIndex, self.get_label_color(colorIndex)))
       except ValueError:
         continue 
     return polyList
 
-  def createLabelImage(self, xlsInfoList, inputImg, singleLabelIndex):
+  def createImageSet(self, xlsInfoList, inputImg, singleLabelIndex):
     polyList  = self.getPolysForImage(xlsInfoList, inputImg.size, singleLabelIndex)
-    return new IMSet(inputImg, polyList)
+    return image_set.IMSet(inputImg, polyList)
 
   def get_label_color(self, colorIndex):
-     import numpy as np
      while (len(self.label_colors) <= colorIndex):
         self.label_colors.append((np.random.randint(0,255),np.random.randint(0,255),np.random.randint(0,255)))
      return self.label_colors[colorIndex]
