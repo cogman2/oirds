@@ -68,22 +68,15 @@ def placePolyInImage(img, poly, indices, colorIndex, color):
 def resizePoly(poly, initialSize, finalSize):
    from shapely.geometry import polygon
    from shapely.ops import transform
-   wpercent = (finalSize[0]/float(initialSize[0]))
-   hpercent = (finalSize[1]/float(initialSize[1]))
-   return transform(lambda x, y, z=None: (x*wpercent,y*hpercent), poly)
+   from shapely import affinity
+   wpercent = (finalSize/float(initialSize[0]))
+   hpercent = (finalSize/float(initialSize[1]))
+   return affinity.scale(poly, xfact=wpercent, yfact=hpercent, origin=(0,0))
+#   return transform(lambda x, y, z=None: (x*wpercent,y*hpercent), poly)
+
 
 def centers(polyList):
    return [((polyObjTuple[0].bounds[2] - polyObjTuple[0].bounds[0])/2, (polyObjTuple[0].bounds[3] - polyObjTuple[0].bounds[1])/2) for polyObjTuple in polyList]
-
-
-#def cropPoly(polyObjTuple,bbox):
-#     from shapely import affinity
-#     translatedPoly = affinity.translate(polyObjTuple[0],deltaX, deltaY)
-#     for newPolyTuple in newPolyList:
-#       if (newPolyTuple[0].intersects(translatedPoly)):
-#         return False
-#     newPolyList.append((translatedPoly, polyObjTuple[1]))
-#     return True
 
 
 def movePoly(polyObjTuple, deltaX, deltaY, newPolyList):
@@ -96,25 +89,14 @@ def movePoly(polyObjTuple, deltaX, deltaY, newPolyList):
      return True
 
 
-def rotatePoly(polyList, angle, centroid):
+def rotatePoly(poly, angle, centroid):
      from shapely import affinity
-     newPolyList = list()
-     for polyTuple in polyList: 
-        newPolyList.append((affinity.rotate(polyTuple[0], angle, origin=centroid), polyTuple[1],polyTuple[2]))
-     return newPolyList
-
-def resizePoly(poly, factor):
-  from shapely import affinity
-  newPolyList = list()
-  for polyTuple in polyList: 
-       newPolyList.append((affinity.scale(polyTyple[0],xfact=factor,yfact=factor), polyTuple[1],polyTuple[2]))
-  return newPolyList
+     return affinity.rotate(poly, angle, origin=centroid)
 
 #def resizePoly(poly, factor):
 #   from shapely.geometry import polygon
 #   from shapely.ops import transform
 #   return transform(lambda x, y, z=None: (x*factor,y*factor), poly)
-
 
 def rollPoly(polyList, sizes, delta):
       from shapely import affinity
@@ -141,7 +123,7 @@ def rollImage(image, delta):
      image.paste(partL, (xsize-splitX, 0, xsize, ysize))
      return image
 
-def resizeImg(im, imageCropSize):
+def resizeImage(im, imageCropSize):
    wpercent = (imageCropSize/float(im.size[0]))
    hsize = int((float(im.size[1])*float(wpercent)))
    return im.resize((imageCropSize ,hsize),Image.ANTIALIAS).crop((0,0,imageCropSize, imageCropSize))
@@ -161,7 +143,10 @@ class IMSet:
     return self.rawImage.size
 
   def resize(self,imageResize):
-    return IMSet(resizeImage(self.rawImage, imageResize),resizePolys(imageResize))
+    return IMSet(resizeImage(self.rawImage, imageResize),[(resizePoly(poly[0], self.rawImage.size, imageResize), poly[1],poly[2]) for poly in self.polyList])
+
+  def rotate(self, degrees):
+    return IMSet(self.rawImage.rotate(degrees),[(rotatePoly(poly[0],-degrees,(self.rawImage.size[0]/2,self.rawImage.size[1]/2)),poly[1],poly[2]) for poly in self.polyList])
 
   def placePolysInImage(self):
     import numpy as np
@@ -174,36 +159,38 @@ class IMSet:
       except:
           continue
     return imLabel, indices, centers(self.polyList)
-
+  
   def imageSetFromCroppedImage(self, imageCropSize, slide ):
-    cx = self.rawImage.size[0] / slide
-    cy = self.rawImage.size[1] / slide
+    cx = 1 if (slide == 0) else (self.rawImage.size[0] / slide) - int(imageCropSize/slide) + 1
+    cy = 1 if (slide == 0) else (self.rawImage.size[1] / slide) - int(imageCropSize/slide) + 1
     result = []
     for xi in xrange(int(cx)):
       for yi in xrange(int(cy)):
-       result.append(self.cropImageAt(xi*slide, yi*slide, imageCropSize))
-    return result
+       result.append(self.cropAt(xi*slide, yi*slide, imageCropSize))
+    return [imset for imset in result if (len(imset.polyList) > 0)]
   
-  def cropImageAt(self, cxp, cyp, imageCropSize):
+  def cropAt(self, cxp, cyp, imageCropSize):
     imageSize = self.rawImage.size
-    cxe = max(cxp+imageCropSize, imageSize[0])
-    cye = max(cyp+imageCropSize, imageSize[1])
+    cxe = min(cxp+imageCropSize, imageSize[0])
+    cye = min(cyp+imageCropSize, imageSize[1])
     return IMSet(self.rawImage.crop((cxp, cyp,cxe, cye)), self.cropPolys((cxp, cyp,cxe, cye)))
 
   def cropPolys(self,bbox):
     from shapely.geometry import polygon
     from shapely.geometry import box
     from shapely.geometry import Point
+    from shapely import affinity
     b = box(bbox[0],bbox[1],bbox[2],bbox[3])
     newPolyList = list()
     for polyTuple in self.polyList: 
-      if (polyTuple[0].within(b)):
-        newPolyList.append(polyTuple)
-      x = b.intersection(polyTuple[0])
+      x = polyTuple[0]
+      if (not x.within(b)):
+        if (not x.is_valid):
+           x = x.convex_hull
+        x = b.intersection(x)
+      x = affinity.translate(x,xoff=-bbox[0],yoff=-bbox[1])
       if (x.area >= (0.75 * polyTuple[0].area)):
         newPolyList.append((x,polyTuple[1],polyTuple[2]))
     return newPolyList
 
 
-  def resizePolys(self, imgSize):
-    return [resizePoly(poly, self.rawImage.size, imgSize) for poly in self.polyList]

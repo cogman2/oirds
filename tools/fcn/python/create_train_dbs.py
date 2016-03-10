@@ -82,8 +82,12 @@ def  writeOutImages(gtTool, odn_txn, ods_txn, ldn_txn, lds_txn, testNames, confi
 def echoFunction(x):
   return x
 
+def rotateFunction(degrees, imset):
+  return imset.rotate(degrees)
+
 def getAugmentFunctions(config):
-  return [echoFunction]
+  from functools import partial
+  return [echoFunction, partial(rotateFunction,90),partial(rotateFunction,180),partial(rotateFunction,270)]
 
 def outputImages(name, imageData, gtTool, odn_txn, ods_txn, ldn_txn, lds_txn, testNames, test_idx, train_idx,config):
    print name + '-----------'
@@ -100,21 +104,22 @@ def outputImages(name, imageData, gtTool, odn_txn, ods_txn, ldn_txn, lds_txn, te
       print 'skipping'
       return (0,0)
    augmentFunctions = getAugmentFunctions(config)
-   for augmentFunction in augmentFunctions:
-      augmentedImSet = augmentFunction(imSet)
-      for croppedImSet in imSet.imageSetFromCroppedImage(imageCropSize, slide):
-        if (imageResize != croppedImSet.getImgShape()[0]):
-          croppedImSet = croppedImSet.resize(imageResize)
-        labelImage, labelIndices, centers = croppedImSet.placePolysInImage()
-        labelImage.save("./png_gt/" + name[0:name.rindex('.')] + "_" + str(i) + ".png")
-        rawImage.save("./png_raw/"  + name[0:name.rindex('.')] + "_" + str(i) + ".png")
+   for croppedImSet in imSet.imageSetFromCroppedImage(imageCropSize, slide):
+     if (imageResize != croppedImSet.getImgShape()[0]):
+        croppedImSet = croppedImSet.resize(imageResize)
+     for augmentFunction in augmentFunctions:
+        augmentedImSet = augmentFunction(croppedImSet)
+        labelImage, labelIndices, centers = augmentedImSet.placePolysInImage()
+        rawImage = augmentedImSet.rawImage
+        labelImage.save("./png_gt/" + name[0:name.rindex('.')] + "_" + str(c) + ".png")
+        rawImage.save("./png_raw/"  + name[0:name.rindex('.')] + "_" + str(c) + ".png")
         c += 1
         if (name in testNames):
-           outGT(rawImage, ods_txn, test_idx + i)
-           outGTLabel(labelIndices, lds_txn, test_idx+i)
+           outGT(rawImage, ods_txn, test_idx + c)
+           outGTLabel(labelIndices, lds_txn, test_idx+c)
         else:
-           outGT(rawImage, odn_txn, train_idx+i)
-           outGTLabel(labelIndices, ldn_txn, train_idx+i)
+           outGT(rawImage, odn_txn, train_idx + c)
+           outGTLabel(labelIndices, ldn_txn, train_idx+c)
    return (0,c) if (name in testNames) else (c,0)
 
 
