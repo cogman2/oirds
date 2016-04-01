@@ -39,8 +39,9 @@ def checkGTImage(img_array, dims):
   return hist[0]/float((dims[0]*dims[1])) >= 0.25 and hist[1]/float((dims[0]*dims[1])) >= 0.25
 
 # pullRawImage(wmsConn,'Aerial_CIR_Profile', (-48.754156,-28.497557,-48.7509017,-28.494662), (256,256))
-def pullRawImage(wmsConn,profile, bbx,dims):
-  return wmsConn.getmap(layers=['DigitalGlobe:Imagery'],  srs='EPSG:4326',  bbox=bbx, size=dims,  format='image/png', transparent=True, BGCOLOR='0x0000FF', FEATUREPROFILE=profile)
+def pullRawImage(wmsConn,profile, dims, bbx):
+#  print bbx,dims,profile
+  return wmsConn.getmap(layers=['DigitalGlobe:Imagery'],  srs='EPSG:4326',  bbox=bbx, size=dims,  format='image/png', transparent=True, BGCOLOR='0xFFFFFF', FEATUREPROFILE=profile)
 
 def pullSaveGT(config, wmsConn, dims, bbx):
    indices, img = pullGTImage(config,wmsConn, dims, bbx)
@@ -51,18 +52,18 @@ def pullSaveGT(config, wmsConn, dims, bbx):
       return True
    return False
 
-def pullSaveRaw(config, wmsConn, profile, dims, bbx):
-   u = pullRawImage(wmsConn, profile, dims, bbx)
+def pullSaveRaw(config, wmsConn, dims, bbx):
+   u = pullRawImage(wmsConn,config['profile'], dims, bbx)
    fname = re.sub(r'[\[\]\(\) ]','',str(bbx).replace(',','_').replace('.','p').replace('-','n'))
    f = open(fname + "_raw.png","w")
    f.write(u.read())
    f.close()
 
 # eventually we will use this as the curried callback function
-def pullAndDoBoth(config,wmsConnRaw,wmsConnGT,profile, dims, bbx):
+def pullAndDoBoth(config,wmsConnRaw,wmsConnGT,dims,bbx):
   if (config['confines'].intersects(box(bbx[0],bbx[1],bbx[2],bbx[3]))):
     if (pullSaveGT(config,wmsConnGT, dims, bbx)):
-       pullSaveRaw(config,wmsConnRaw, profile, dims, bbx)
+       pullSaveRaw(config,wmsConnRaw, dims, bbx)
 
 def stupidWalk(polys, func):
   for poly in polys:
@@ -80,7 +81,7 @@ def doit(polys,config):
   gtwmsConn=connectToGT(config)
   dims=(256,256)
   #currying ...for now, just use the GT, eventually we will use pullAndDoBoth
-  mycallback = partial(pullAndDoBoth,config, dgwmsConn,gtwmsConn, 'Aerial_CIR_Profile', dims)
+  mycallback = partial(pullAndDoBoth,config,dgwmsConn,gtwmsConn, dims)
   # to be replaced by smart walk...which will also need zoom level, starting point(possibily), initial direction and distance to move 
   # in pixels..probably put all this in a 'config' object which is a dictionary
   shapeWalk(polys, dims, mycallback)
