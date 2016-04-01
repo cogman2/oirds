@@ -4,6 +4,35 @@ import pandas as pd
 from PIL import Image
 import image_set
 
+def placeCoordPolyInImage(img, dimensions, poly, bbox, indices, colorIndex,color):
+   xv = (bbox[2] - bbox[0])/dimensions[0]
+   yv = (bbox[3] - bbox[1])/dimensions[1]
+   for x in xrange(dimensions[0]):
+     for y in xrange(dimensions[1]):
+       if poly.contains(Point(bbox[0]+x*xv, bbox[1]+y*yv)):
+           img.putpixel((x, y), color)
+           indices[0,x,y]=colorIndex
+
+def convertPoly(dimensions, poly, bbox):
+   xv = (bbox.bounds[2] - bbox.bounds[0])/dimensions[0]
+   yv = (bbox.bounds[3] - bbox.bounds[1])/dimensions[1]
+   r = list()
+   for p in poly.exterior.coords:
+     if (bbox.covers(Point(p[0],p[1]))):
+       xd = (x[0] - bbox.bounds[0])/xv
+       yd = (y[0] - bbox.bounds[1])/yv
+       r.append([xd,yd])
+   return r
+   
+def placePolyInImage(img, poly, indices, colorIndex, color):
+    from shapely.geometry import Point
+    width, length = img.size
+    bounds = poly.bounds
+    for x in (xrange(int(bounds[0]),int(bounds[2]))):
+       for y in (xrange(int(bounds[1]),int(bounds[3]))):
+         if poly.contains(Point(x, y)):
+           img.putpixel((x, y), color)
+           indices[0,x,y]=colorIndex
 
 def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
