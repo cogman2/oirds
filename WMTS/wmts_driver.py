@@ -8,17 +8,21 @@ from PIL import Image
 from functools import partial
 import shape_walker
 import re
+from shapely.geometry import box
+from shapely.geometry import polygon
+from shapely.geometry import linestring
+from shapely.geometry.polygon import LinearRing
 
 
 def connectToGT(config):
-  return WebMapService('http://129.206.228.72/cached/osm', version='1.1.1')
+  return WebMapService(config['gthost'], version='1.1.1')
 
 def connectToDG(config):
   return WebMapService("https://evwhs.digitalglobe.com/mapservice/wmsaccess?connectid=" + config['connectid'], username=config['uname'], password=config['passwd'], version='1.1.1')
 
 # pullGTImage(wmsConn, (-48.754156,-28.497557,-48.7509017,-28.494662), (256,256))
-def pullGTImage(wmsConn,dims, bbx):
-  u = wmsConn.getmap(layers=['osm_auto:all'],  srs='EPSG:4326',  bbox=bbx, size=dims,  format='image/png')
+def pullGTImage(config, wmsConn,dims, bbx):
+  u = wmsConn.getmap(layers=[config['gtlayer']],  srs='EPSG:4326',  bbox=bbx, size=dims,  format='image/png')
   b = u.read()
   stream = BytesIO(b)
   img = Image.open(stream)
@@ -37,8 +41,8 @@ def checkGTImage(img_array, dims):
 def pullRawImage(wmsConn,profile, bbx,dims):
   return wmsConn.getmap(layers=['DigitalGlobe:Imagery'],  srs='EPSG:4326',  bbox=bbx, size=dims,  format='image/png', transparent=True, BGCOLOR='0xFFFFFF', FEATUREPROFILE=profile)
 
-def pullSaveGT(wmsConn, dims, bbx):
-   indices, img = pullGTImage(wmsConn, dims, bbx)
+def pullSaveGT(config, wmsConn, dims, bbx):
+   indices, img = pullGTImage(config,wmsConn, dims, bbx)
    if checkGTImage(indices,dims):
       fname = re.sub(r'[\[\]\(\) ]','',str(bbx).replace(',','_').replace('.','p').replace('-','n'))
       img.save(fname + '_gt.png')
@@ -46,7 +50,7 @@ def pullSaveGT(wmsConn, dims, bbx):
       return True
    return False
 
-def pullSaveRaw(wmsConn, profile, dims, bbx):
+def pullSaveRaw(config, wmsConn, profile, dims, bbx):
    u = pullRawImage(wmsConn, profile, dims, bbx)
    fname = re.sub(r'[\[\]\(\) ]','',str(bbx).replace(',','_').replace('.','p').replace('-','n'))
    f = open(fname + "_raw.png","w")
@@ -54,9 +58,9 @@ def pullSaveRaw(wmsConn, profile, dims, bbx):
    f.close()
 
 # eventually we will use this as the curried callback function
-def pullAndDoBoth(wmsConnRaw,wmsConnGT,profile, dims, bbx):
-  if (pullSaveGT(wmsConnGT, dims, bbx)):
-     pullSaveRaw(wmsConnRaw, profile, dims, bbx)
+def pullAndDoBoth(config,wmsConnRaw,wmsConnGT,profile, dims, bbx):
+  if (pullSaveGT(config,wmsConnGT, dims, bbx)):
+     pullSaveRaw(config,wmsConnRaw, profile, dims, bbx)
 
 def stupidWalk(polys, func):
   for poly in polys:
@@ -74,8 +78,40 @@ def doit(polys,config):
   gtwmsConn=connectToGT(config)
   dims=(256,256)
   #currying ...for now, just use the GT, eventually we will use pullAndDoBoth
-  mycallback = partial(pullAndDoBoth,dgwmsConn,gtwmsConn, 'Aerial_CIR_Profile', dims)
+  mycallback = partial(pullAndDoBoth,config, dgwmsConn,gtwmsConn, 'Aerial_CIR_Profile', dims)
   # to be replaced by smart walk...which will also need zoom level, starting point(possibily), initial direction and distance to move 
   # in pixels..probably put all this in a 'config' object which is a dictionary
   shapeWalk(polys, dims, mycallback)
   
+def toShape(x):
+   if (len(x) == 2):
+      return linestring.LineString(x)
+   return polygon.asPolygon(x)
+
+def loadPolies(config):
+  import shapefile
+  sf = shapefile.Reader("/home/rwgdrummer/oirds/land-polygons-complete-4326/land_polygons")
+  shapes = sf.shapes()
+  bbx = box(-51.371607,-1.695657, -44.728106,1.667856)
+  shapeSetOfInterest = [linestring.LineString(x.points) for x in shapes if toShape(x.points).intersects(bbx)]
+  return shapeSetOfInterest
+
+def doitFromConfig(config):
+  pp = loadPolies(config)
+  doit(pp,config)
+
+def main():
+   import pickle
+   import sys
+
+   if len(sys.argv) < 1:
+      print "Usage: ", sys.argv[0], " configFile"
+      sys.exit( 0 )
+
+   f = open(sys.argv[1],"rb")
+   config = pickle.load(f)
+   f.close()
+   doitFromConfig(config)
+
+if __name__=="__main__":
+    main()  
