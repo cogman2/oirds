@@ -35,11 +35,12 @@ def pullGTImage(config, wmsConn,dims, bbx):
   return bchannel, img
 
 def checkGTImage(img_array, dims):
-  return float(np.histogram(img_array,2)[0][1])/float((dims[0]*dims[1])) >= 0.25
+  hist = np.histogram(img_array,2)[0]
+  return hist[0]/float((dims[0]*dims[1])) >= 0.25 and hist[1]/float((dims[0]*dims[1])) >= 0.25
 
 # pullRawImage(wmsConn,'Aerial_CIR_Profile', (-48.754156,-28.497557,-48.7509017,-28.494662), (256,256))
 def pullRawImage(wmsConn,profile, bbx,dims):
-  return wmsConn.getmap(layers=['DigitalGlobe:Imagery'],  srs='EPSG:4326',  bbox=bbx, size=dims,  format='image/png', transparent=True, BGCOLOR='0xFFFFFF', FEATUREPROFILE=profile)
+  return wmsConn.getmap(layers=['DigitalGlobe:Imagery'],  srs='EPSG:4326',  bbox=bbx, size=dims,  format='image/png', transparent=True, BGCOLOR='0x0000FF', FEATUREPROFILE=profile)
 
 def pullSaveGT(config, wmsConn, dims, bbx):
    indices, img = pullGTImage(config,wmsConn, dims, bbx)
@@ -59,8 +60,9 @@ def pullSaveRaw(config, wmsConn, profile, dims, bbx):
 
 # eventually we will use this as the curried callback function
 def pullAndDoBoth(config,wmsConnRaw,wmsConnGT,profile, dims, bbx):
-  if (pullSaveGT(config,wmsConnGT, dims, bbx)):
-     pullSaveRaw(config,wmsConnRaw, profile, dims, bbx)
+  if (config['confines'].intersects(box(bbx[0],bbx[1],bbx[2],bbx[3]))):
+    if (pullSaveGT(config,wmsConnGT, dims, bbx)):
+       pullSaveRaw(config,wmsConnRaw, profile, dims, bbx)
 
 def stupidWalk(polys, func):
   for poly in polys:
@@ -88,17 +90,16 @@ def toShape(x):
       return linestring.LineString(x)
    return polygon.asPolygon(x)
 
-def loadPolies(config):
+def loadPolys(config):
   import shapefile
   sf = shapefile.Reader("/home/rwgdrummer/oirds/land-polygons-complete-4326/land_polygons")
+  bbx=config['confines']
   shapes = sf.shapes()
-  bbx = box(-51.371607,-1.695657, -44.728106,1.667856)
   shapeSetOfInterest = [linestring.LineString(x.points) for x in shapes if toShape(x.points).intersects(bbx)]
   return shapeSetOfInterest
 
 def doitFromConfig(config):
-  pp = loadPolies(config)
-  doit(pp,config)
+  doit(loadPolys(config),config)
 
 def main():
    import pickle
@@ -111,6 +112,9 @@ def main():
    f = open(sys.argv[1],"rb")
    config = pickle.load(f)
    f.close()
+   bbxarray = [float(x) for x in config['box'].split(',')]
+   bbx = box(bbxarray[0],bbxarray[1],bbxarray[2],bbxarray[3])
+   config['confines']=bbx
    doitFromConfig(config)
 
 if __name__=="__main__":
