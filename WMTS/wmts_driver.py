@@ -27,29 +27,35 @@ def connectToGTTile(config):
 def connectToDGTile(config):
   return WebMapTileService("https://evwhs.digitalglobe.com/earthservice/wmtsaccess?connectid=" + config['connectid'], username=config['uname'], password=config['passwd'], version='1.1.1')
 
-def toImageFile(b):
+def toImageFile(b,dims):
   stream = BytesIO(b)
   img = Image.open(stream)
   nio = np.asarray(img.convert("RGB"))
-  bchannel = np.copy(nio.transpose()[2])
-  bchannel[bchannel<251] = 0
+  bchannel = np.copy(nio.transpose()[2]).transpose()
+  bchannel[bchannel<=251] = 0
   #set label to 1
   bchannel[bchannel>251] = 1  
   bchannel = bchannel.reshape(dims)
   return bchannel, img
 
 # pullGTImage(wmsConn, (-48.754156,-28.497557,-48.7509017,-28.494662), (256,256))
-def pullGTImage(wmsConn,dims, bbx):
-  u = wmsConn.getmap(layers=['osm_auto:all'],  srs='EPSG:4326',  bbox=bbx, size=dims,  format='image/png')
-  return toImageFile(u.read())
+def pullGTImage(config,wmsConn,dims, bbx):
+  u = wmsConn.getmap(layers=[config['gtlayer']],  srs='EPSG:4326',  bbox=bbx, size=dims,  format='image/png')
+  return toImageFile(u.read(),dims)
 
-def pullGTImageTile(wmsConn,dims, tile):
-  u = wmsConn.gettile(layer='DigitalGlobe:ImageryTileService', tilematrixset='EPSG:4326', tilematrix='EPSG:4326:17', row=47785, column=47785, format="image/png")
-  return toImageFile(u.read())
+def pullGTImageTile(config, wmsConn,dims, tile):
+  u = wmsConn.gettile(layer=config['gtlayer'], tilematrixset='EPSG:4326', tilematrix='EPSG:4326:17', row=47785, column=47785, format="image/png")
+  return toImageFile(u.read(),dims)
+
+def checkComplexity(img_array):
+  return True
 
 def checkGTImage(img_array, dims):
   hist = np.histogram(img_array,2)[0]
-  return hist[0]/float((dims[0]*dims[1])) >= 0.25 and hist[1]/float((dims[0]*dims[1])) >= 0.25
+  perc = hist[0]/float((dims[0]*dims[1]))
+  if (perc <= 0.20 and perc >= 0.80):
+    return False
+  return checkComplexity(img_array)
 
 # pullRawImage(wmsConn,'Aerial_CIR_Profile', (-48.754156,-28.497557,-48.7509017,-28.494662), (256,256))
 def pullRawImage(wmsConn,profile,dims, bbx):
@@ -58,9 +64,6 @@ def pullRawImage(wmsConn,profile,dims, bbx):
 def pullRawImageTile(wmsConn,profile,dims, tile):
   print tile
   return wmsConn.gettile(layer='DigitalGlobe:ImageryTileService', tilematrixset='EPSG:4326', tilematrix='EPSG:4326:17', row=tile[1], column=tile[0], format="image/png")
-
-def pullSaveGT(wmsConn, dims, bbx):
-   indices, img = pullGTImage(wmsConn, dims, bbx)
 
 def pullSaveGT(config, wmsConn, dims, bbx):
    indices, img = pullGTImage(config,wmsConn, dims, bbx)
@@ -72,7 +75,7 @@ def pullSaveGT(config, wmsConn, dims, bbx):
    return False
 
 def pullSaveGTTile(config, wmsConn, dims, tile):
-   indices, img = pullGTImageTile(wmsConn, dims, tile)
+   indices, img = pullGTImageTile(configw,msConn, dims, tile)
    if checkGTImage(indices,dims):
       fname = re.sub(r'[\[\]\(\) ]','',str(tile).replace(',','_').replace('.','p').replace('-','n'))
       img.save(fname + '_gt.png')
@@ -94,13 +97,22 @@ def pullSaveRawTile(config, wmsConn, dims, tile):
    f.write(u.read())
    f.close()
 
+def checkForBigAngles(linestr):
+   if (linestr == None):  
+     return True
+   coords = [x for x in linestr.coords]
+   if (len(coords) < 3):
+     return True
+   ang = abs(math.atan2(linestr[1][1] - linestr[0][1], linestr[1][0]- linestr[0][0]) - math.atan2(linestr[2][1]-linestr[0][1], linestr[2][0] - linestr[0][0]))
+   return env < 45
+
 # eventually we will use this as the curried callback function
-def pullAndDoBoth(config,wmsConnRaw,wmsConnGT,dims,bbx):
+def pullAndDoBoth(config,wmsConnRaw,wmsConnGT,dims,bbx, linestr):
   if (config['confines'].intersects(box(bbx[0],bbx[1],bbx[2],bbx[3]))):
     if (pullSaveGT(config,wmsConnGT, dims, bbx)):
        pullSaveRaw(config,wmsConnRaw, dims, bbx)
 
-def pullAndDoBothTile(config, wmsConnRaw,wmsConnGT,dims, bbx):
+def pullAndDoBothTile(config, wmsConnRaw,wmsConnGT,dims, bbx,linestr):
   if (config['confines'].intersects(box(bbx[0],bbx[1],bbx[2],bbx[3]))):
      pullSaveGTTile(config,wmsConnGT, dims, bbx)
      pullSaveRawTile(config,wmsConnRaw, profile, dims, bbx)
@@ -108,7 +120,7 @@ def pullAndDoBothTile(config, wmsConnRaw,wmsConnGT,dims, bbx):
 def stupidWalk(polys, func):
   for poly in polys:
      for point in poly.points:
-        func((point[0]-0.03, point[1]-0.03, point[0]+0.03, point[1]+0.03))
+        func((point[0]-0.03, point[1]-0.03, point[0]+0.03, point[1]+0.03),None)
 
 osm_meters_per_pixel = {20 : 0.1493, 19 : 0.2986, 18 : 0.5972, 17 : 1.1943, 16 : 2.3887 , 15 : 4.7773 , 14 : 9.5546 , 13 : 19.109, 12 : 38.219, 11 : 76.437, 10 : 152.87, 9  : 305.75, 8  : 611.50, 7  : 1222.99, 6  : 2445.98, 5  : 4891.97, 4  : 9783.94, 3  : 19567.88, 2  : 39135.76, 1  : 78271.52, 0 : 156412.0}
  
