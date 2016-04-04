@@ -30,18 +30,25 @@ def shape_walk(lat_longs, zoom_level, zoom_dic, step_size, bbox_size, output_fun
         start_points = map(point_function, lat_longs[i:i+2])
         heading = start_points[0].heading_initial(start_points[1])
         total_distance = start_points[0].distance(start_points[1])
-        for bounding_box in  walk_the_line(start_points[0], heading, total_distance, step_dist, directs, pixel_scale, bbox_size):
-            output_function(bounding_box.bounds)
+        for bounding_box in  walk_the_line(start_points[0], heading, total_distance, step_dist, directs, pixel_scale, zoom_level, bbox_size):
+            output_function(bounding_box)
 
-def walk_the_line(start_point, heading, total_distance, step_dist, directs, pixel_scale, bbox_size):
+def walk_the_line(start_point, heading, total_distance, step_dist, directs, pixel_scale, zoom_level,bbox_size):
     bounding_boxes = list()
     num_steps = int(np.floor(total_distance/step_dist))
     for i in range(0,num_steps):
         for dir in directs:
-           bounding_boxes.append(to_bbox(move_step(start_point, dir+heading, step_dist), pixel_scale, bbox_size))
+#           bounding_boxes.append(to_bbox(move_step(start_point, dir+heading, step_dist), pixel_scale, bbox_size))
+            t = to_tile(move_step(start_point, dir+heading, step_dist), zoom_level)
+            if not t in bounding_boxes:
+              bounding_boxes.append(t)
         start_point = start_point.offset(heading, step_dist)
     return bounding_boxes
 
+
+def to_tile(center_point, zoom):
+    lat,lon = center_point.to_string('D')
+    return deg2num(float(lat),float(lon),zoom)
 
 def to_bbox(center_point, pixel_scale, box_size):
     lat,lon = center_point.to_string('D')
@@ -53,7 +60,7 @@ def to_bbox(center_point, pixel_scale, box_size):
         temp_point = center_point.offset(heading,ctr_dist)
         lat_tmp, long_tmp = temp_point.to_string('D')
         bounding_box.append(((float(lat_tmp), float(long_tmp)))) # Need to get the correct accessor
-    return box(bounding_box[0][0],bounding_box[0][1],bounding_box[1][0],bounding_box[1][1])
+    return (bounding_box[0][0],bounding_box[0][1],bounding_box[1][0],bounding_box[1][1])
 
 def move_step(begin_point, heading, step_dist):
     return begin_point if (step_dist == 0) else  begin_point.offset(heading, step_dist)
