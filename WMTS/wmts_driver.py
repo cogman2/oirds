@@ -9,9 +9,14 @@ from functools import partial
 import shape_walker
 import re
 from owslib.wmts import WebMapTileService
+from shapely.geometry import box
+from shapely.geometry import polygon
+from shapely.geometry import linestring
+from shapely.geometry.polygon import LinearRing
+
 
 def connectToGT(config):
-  return WebMapService('http://129.206.228.72/cached/osm', version='1.1.1')
+  return WebMapService(config['gthost'], version='1.1.1')
 
 def connectToDG(config):
   return WebMapService("https://evwhs.digitalglobe.com/mapservice/wmsaccess?connectid=" + config['connectid'], username=config['uname'], password=config['passwd'], version='1.1.1')
@@ -43,11 +48,11 @@ def pullGTImageTile(wmsConn,dims, tile):
   return toImageFile(u.read())
 
 def checkGTImage(img_array, dims):
-  return float(np.histogram(img_array,2)[0][1])/float((dims[0]*dims[1])) >= 0.25
+  hist = np.histogram(img_array,2)[0]
+  return hist[0]/float((dims[0]*dims[1])) >= 0.25 and hist[1]/float((dims[0]*dims[1])) >= 0.25
 
 # pullRawImage(wmsConn,'Aerial_CIR_Profile', (-48.754156,-28.497557,-48.7509017,-28.494662), (256,256))
 def pullRawImage(wmsConn,profile,dims, bbx):
-  print bbx
   return wmsConn.getmap(layers=['DigitalGlobe:Imagery'],  srs='EPSG:4326',  bbox=bbx, size=dims,  format='image/png', transparent=True, BGCOLOR='0xFFFFFF', FEATUREPROFILE=profile)
 
 def pullRawImageTile(wmsConn,profile,dims, tile):
@@ -56,6 +61,9 @@ def pullRawImageTile(wmsConn,profile,dims, tile):
 
 def pullSaveGT(wmsConn, dims, bbx):
    indices, img = pullGTImage(wmsConn, dims, bbx)
+
+def pullSaveGT(config, wmsConn, dims, bbx):
+   indices, img = pullGTImage(config,wmsConn, dims, bbx)
    if checkGTImage(indices,dims):
       fname = re.sub(r'[\[\]\(\) ]','',str(bbx).replace(',','_').replace('.','p').replace('-','n'))
       img.save(fname + '_gt.png')
@@ -63,7 +71,7 @@ def pullSaveGT(wmsConn, dims, bbx):
       return True
    return False
 
-def pullSaveGTTile(wmsConn, dims, tile):
+def pullSaveGTTile(config, wmsConn, dims, tile):
    indices, img = pullGTImageTile(wmsConn, dims, tile)
    if checkGTImage(indices,dims):
       fname = re.sub(r'[\[\]\(\) ]','',str(tile).replace(',','_').replace('.','p').replace('-','n'))
@@ -72,28 +80,30 @@ def pullSaveGTTile(wmsConn, dims, tile):
       return True
    return False
 
-def pullSaveRaw(wmsConn, profile, dims, bbx):
-   u = pullRawImage(wmsConn, profile, dims, bbx)
+def pullSaveRaw(config, wmsConn, dims, bbx):
+   u = pullRawImage(wmsConn,config['profile'], dims, bbx)
    fname = re.sub(r'[\[\]\(\) ]','',str(bbx).replace(',','_').replace('.','p').replace('-','n'))
    f = open(fname + "_raw.png","w")
    f.write(u.read())
    f.close()
 
-def pullSaveRawTile(wmsConn, profile, dims, tile):
-   u = pullRawImageTile(wmsConn, profile, dims, tile)
+def pullSaveRawTile(config, wmsConn, dims, tile):
+   u = pullRawImageTile(wmsConn, config['profile'], dims, tile)
    fname = re.sub(r'[\[\]\(\) ]','',str(tile).replace(',','_').replace('.','p').replace('-','n'))
    f = open(fname + "_raw.png","w")
    f.write(u.read())
    f.close()
 
 # eventually we will use this as the curried callback function
-def pullAndDoBoth(wmsConnRaw,wmsConnGT,profile, dims, bbx):
-  if (pullSaveGT(wmsConnGT, dims, bbx)):
-     pullSaveRaw(wmsConnRaw, profile, dims, bbx)
+def pullAndDoBoth(config,wmsConnRaw,wmsConnGT,dims,bbx):
+  if (config['confines'].intersects(box(bbx[0],bbx[1],bbx[2],bbx[3]))):
+    if (pullSaveGT(config,wmsConnGT, dims, bbx)):
+       pullSaveRaw(config,wmsConnRaw, dims, bbx)
 
-def pullAndDoBothTile(wmsConnRaw,wmsConnGT,profile, dims, bbx):
-#     pullSaveGTTile(wmsConnGT, dims, bbx)
-     pullSaveRawTile(wmsConnRaw, profile, dims, bbx)
+def pullAndDoBothTile(config, wmsConnRaw,wmsConnGT,dims, bbx):
+  if (config['confines'].intersects(box(bbx[0],bbx[1],bbx[2],bbx[3]))):
+     pullSaveGTTile(config,wmsConnGT, dims, bbx)
+     pullSaveRawTile(config,wmsConnRaw, profile, dims, bbx)
 
 def stupidWalk(polys, func):
   for poly in polys:
@@ -111,7 +121,7 @@ def doit(polys,config):
   gtwmsConn=connectToGT(config)
   dims=(256,256)
   #currying ...for now, just use the GT, eventually we will use pullAndDoBoth
-  mycallback = partial(pullAndDoBoth,dgwmsConn,gtwmsConn, 'Aerial_CIR_Profile', dims)
+  mycallback = partial(pullAndDoBoth,config,dgwmsConn,gtwmsConn, dims)
   # to be replaced by smart walk...which will also need zoom level, starting point(possibily), initial direction and distance to move 
   # in pixels..probably put all this in a 'config' object which is a dictionary
   shapeWalk(polys, dims, mycallback)
@@ -122,7 +132,42 @@ def doitTile(polys,config):
   gtwmsConn=connectToGTTile(config)
   dims=(256,256)
   #currying ...for now, just use the GT, eventually we will use pullAndDoBoth
-  mycallback = partial(pullAndDoBothTile,dgwmsConn,gtwmsConn, 'Aerial_CIR_Profile', dims)
+  mycallback = partial(pullAndDoBothTile,config, dgwmsConn,gtwmsConn, dims)
   # to be replaced by smart walk...which will also need zoom level, starting point(possibily), initial direction and distance to move 
   # in pixels..probably put all this in a 'config' object which is a dictionary
   shapeWalk(polys, dims, mycallback)
+
+def toShape(x):
+   if (len(x) == 2):
+      return linestring.LineString(x)
+   return polygon.asPolygon(x)
+
+def loadPolys(config):
+  import shapefile
+  sf = shapefile.Reader(config['landshapefile'])
+  bbx=config['confines']
+  shapes = sf.shapes()
+  shapeSetOfInterest = [linestring.LineString(x.points) for x in shapes if toShape(x.points).intersects(bbx)]
+  return shapeSetOfInterest
+
+def doitFromConfig(config):
+  doit(loadPolys(config),config)
+
+def main():
+   import pickle
+   import sys
+
+   if len(sys.argv) < 1:
+      print "Usage: ", sys.argv[0], " configFile"
+      sys.exit( 0 )
+
+   f = open(sys.argv[1],"rb")
+   config = pickle.load(f)
+   f.close()
+   bbxarray = [float(x) for x in config['box'].split(',')]
+   bbx = box(bbxarray[0],bbxarray[1],bbxarray[2],bbxarray[3])
+   config['confines']=bbx
+   doitFromConfig(config)
+
+if __name__=="__main__":
+    main()  

@@ -3,6 +3,7 @@ import numpy as np
 from LatLon import *
 import math
 from shapely.geometry import box
+import sys
 
 def distance_for_latitude(lat, pixel_scale, step_size):
   return  np.cos(math.radians(float(lat))) * pixel_scale * step_size * 0.001 # Convert to Kilometers
@@ -27,11 +28,18 @@ def shape_walk(lat_longs, zoom_level, zoom_dic, step_size, bbox_size, output_fun
     step_dist = np.cos(float(lat)*(np.pi/180)) * pixel_scale * step_size * 0.001 # Convert to Kilometers
     directs = [-90+90*i for i in range(0,3)]
     for i in xrange(len(lat_longs)-1):
-        start_points = map(point_function, lat_longs[i:i+2])
-        heading = start_points[0].heading_initial(start_points[1])
-        total_distance = start_points[0].distance(start_points[1])
-        for bounding_box in  walk_the_line(start_points[0], heading, total_distance, step_dist, directs, pixel_scale, zoom_level, bbox_size):
-            output_function(bounding_box)
+       start_points = map(point_function, lat_longs[i:i+2])
+       try:
+#         heading_slope = (lat_longs[i+1][0] - lat_longs[i][0])/(lat_longs[i+1][1] - lat_longs[i][1])
+#         line_distance  = math.sqrt((lat_longs[i+1][0] - lat_longs[i][0])**2 + (lat_longs[i+1][1] - lat_longs[i][1])**2)
+         heading = start_points[0].heading_initial(start_points[1])
+         total_distance = start_points[0].distance(start_points[1])
+         for bounding_box in  walk_the_line(start_points[0], heading, total_distance, step_dist, directs, pixel_scale, zoom_level, bbox_size):
+            output_function(bounding_box.bounds)
+       except ValueError:
+         print sys.exc_info()[0]
+         print start_points[0]
+         print start_points[1]
 
 def walk_the_line(start_point, heading, total_distance, step_dist, directs, pixel_scale, zoom_level,bbox_size):
     bounding_boxes = list()

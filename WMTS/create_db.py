@@ -9,14 +9,13 @@ import matplotlib
 matplotlib.use('Agg') 
 import lmdb
 from PIL import Image
-import gt_tool
-import json_tools
 import re
 from os import listdir
 from os.path import isfile, join
+import os
+import numpy as np
 
 def main():
-   import os
    import shutil
    import glob
    import sys
@@ -47,10 +46,12 @@ def main():
    os.mkdir("./png_raw",0755)
 
    totalCount ,skipInterval = testSkipInterval(sys.argv[1])
+   print "Skip interval is ", skipInterval, " out of ", totalCount
+
    count = 0
 
-   testMapSize = int(float(totalCount* 256*256) * 0.11)
-   trainMapSize = int(float(totalCount* 256*256) * 0.91)
+   testMapSize = int(float(totalCount* 256*256*20) * 0.11)
+   trainMapSize = int(float(totalCount* 256*256*20) * 0.91)
    out_db_train = lmdb.open('raw_train', map_size=trainMapSize)
    out_db_test = lmdb.open('raw_test', map_size=testMapSize)
    label_db_train = lmdb.open('groundtruth_train', map_size=trainMapSize)
@@ -58,13 +59,25 @@ def main():
 
    pattern = re.compile(".*_gt.png")
 
+   path = sys.argv[1]
+   testIdx = 0
+   trainIdx = 0
    with out_db_train.begin(write=True) as odn_txn:
     with out_db_test.begin(write=True) as ods_txn:
      with label_db_train.begin(write=True) as ldn_txn:
       with label_db_test.begin(write=True) as lds_txn:
         for f in os.listdir(path):
-          if (isfile(join(path, f)) and pattern.match(f) != None)
-            writeOutImages(getImages(f), odn_txn, ods_txn, ldn_txn, lds_txn, (count % skipInterval) == 0)
+          if (isfile(join(path, f)) and pattern.match(f) != None):
+            isTest=((count % skipInterval) == 0)
+            imageSet=getImages(path,f)
+            if isTest:
+              outRaw(imageSet[1], ods_txn, testIdx)
+              outGTLabel(imageSet[0], lds_txn, testIdx)
+              testIdx+=1
+            else:
+              outRaw(imageSet[1], odn_txn, trainIdx)
+              outGTLabel(imageSet[0], ldn_txn, trainIdx)
+              trainIdx+=1
             count += 1
 
    out_db_train.close()
@@ -76,42 +89,26 @@ def main():
 def getImages(path, fname):
    indices = np.load(join(path,fname.replace("_gt.png", ".npy")))
    rawimage = Image.open(join(path, fname.replace("_gt.png","_raw.png")))
+   rawimage.load()
    return (indices, rawimage)
 
-def testSkipInterval(path, percentToTest=0.1):
-  c = countFilesInDir(path)
+def testSkipInterval(mpath, percentToTest=0.1):
+  c = countFilesInDir(mpath)
   return c, int(float(c) * percentToTest)
 
-def countFilesInDir(path):
-  pattern = re.compoile(".*_gt.png")
-  list_dir = os.listdir(path)
+def countFilesInDir(mpath):
+  pattern = re.compile(".*_gt.png")
+  list_dir = os.listdir(mpath)
   count = 0
-  for file in list_dir:
-    if (isfile(join(mypath, f)) and pattern.match(f) != None):
+  for f in list_dir:
+    if (isfile(join(mpath, f)) and pattern.match(f) != None):
       count += 1
   return count
-
-def countFilesInDir(path):
-  pattern = re.compoile(".*_gt.png")
-  list_dir = os.listdir(path)
-  count = 0
-  for file in list_dir:
-    if (isfile(join(mypath, f)) and pattern.match(f) != None):
-      count += 1
-  return count
-
-def  writeOutImages(imageSet, odn_txn, ods_txn, ldn_txn, lds_txn, isTest):
-   if isTest:
-      outRaw(imageSet[1], ods_txn, test_idx + c)
-      outGTLabel(imageSet[0], lds_txn, test_idx+c)
-   else:
-      outRaw(imageSet[1], odn_txn, train_idx + c)
-      outGTLabel(imageSet[0], ldn_txn, train_idx+c)
 
 def outRaw (im, out_txn, idx):
    import caffe
    import numpy as np
-   tmp = np.array(im)
+   tmp = np.asarray(im.convert("RGB"),dtype=np.uint8)
    tmp= tmp[:,:,::-1]
    tmp = tmp.transpose((2,0,1))
    im_dat = caffe.io.array_to_datum(tmp)
@@ -120,7 +117,7 @@ def outRaw (im, out_txn, idx):
 def outGTLabel (imArray, out_txn, idx):
    import caffe
    import numpy as np
-   im_dat = caffe.io.array_to_datum(imArray)
+   im_dat = caffe.io.array_to_datum(imArray.reshape((1,imArray.shape[0],imArray.shape[1])))
    out_txn.put('{:0>10d}'.format(idx), im_dat.SerializeToString())
 
 if __name__=="__main__":
