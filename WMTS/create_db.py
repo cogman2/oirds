@@ -25,8 +25,8 @@ def main():
    else:
         from io import StringIO
 
-   if len(sys.argv) < 1:
-      print "Usage: ", sys.argv[0], " imageDir"
+   if len(sys.argv) < 2:
+      print "Usage: ", sys.argv[0], " imageDir waterlabel amount"
       sys.exit( 0 )
 
    if (os.path.isdir("./png_gt")):
@@ -59,6 +59,8 @@ def main():
 
    pattern = re.compile(".*_gt.png")
 
+   water_label = int(sys.argv[2])
+
    path = sys.argv[1]
    testIdx = 0
    trainIdx = 0
@@ -67,19 +69,26 @@ def main():
      with label_db_train.begin(write=True) as ldn_txn:
       with label_db_test.begin(write=True) as lds_txn:
         for f in os.listdir(path):
+          if (count>totalCount):
+            break;
           if (isfile(join(path, f)) and pattern.match(f) != None):
             isTest=((count % skipInterval) == 0)
-            imageSet=getImages(path,f)
-            if isTest:
-              outRaw(imageSet[1], ods_txn, testIdx)
-              outGTLabel(imageSet[0], lds_txn, testIdx)
-              testIdx+=1
-            else:
-              outRaw(imageSet[1], odn_txn, trainIdx)
-              outGTLabel(imageSet[0], ldn_txn, trainIdx)
-              trainIdx+=1
-            count += 1
+            try:
+              imageSet=getImages(path,f)
+              if isTest:
+                outRaw(imageSet[1], ods_txn, testIdx)
+                outGTLabel(imageSet[0], lds_txn, testIdx, water_label)
+                testIdx+=1
+              else:
+                outRaw(imageSet[1], odn_txn, trainIdx)
+                outGTLabel(imageSet[0], ldn_txn, trainIdx, water_label)
+                trainIdx+=1
+              count += 1
+            except IOError:
+               print 'skipping ' , f
+	       print 'count=',count
 
+   print 'wrap up'
    out_db_train.close()
    label_db_train.close()
    out_db_test.close()
@@ -114,9 +123,10 @@ def outRaw (im, out_txn, idx):
    im_dat = caffe.io.array_to_datum(tmp)
    out_txn.put('{:0>10d}'.format(idx), im_dat.SerializeToString())
 
-def outGTLabel (imArray, out_txn, idx):
+def outGTLabel (imArray, out_txn, idx, water_label):
    import caffe
    import numpy as np
+   imArray = imArray*water_label
    im_dat = caffe.io.array_to_datum(imArray.reshape((1,imArray.shape[0],imArray.shape[1])))
    out_txn.put('{:0>10d}'.format(idx), im_dat.SerializeToString())
 
