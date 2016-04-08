@@ -38,8 +38,9 @@ WORKDIR /home/blender
 RUN rm blender-2.77.tar.gz && mkdir tmp && chown -R blender:blender * 
 
 USER blender
-ENV PYTHONHOME /home/blender/build_linux/bin/2.77/python/lib/python3.5
+ENV PYTHONHOME /home/blender/build_linux/bin/2.77/python/lib
 ENV TMP /home/blender/tmp
+ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/blender/build_linux/bin
 
 VOLUME /home/blender
 #ENTRYPOINT ["/usr/local/blender/blender", "-b"]

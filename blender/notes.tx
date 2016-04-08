@@ -1,0 +1,3 @@
+build_linux/bin/blender -b spitfire-for-export.blend  -F JPEG -noaudio -x 1 -o splitscene -a
+
+
