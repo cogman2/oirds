@@ -70,17 +70,26 @@ def isGPU(data):
 def getPercentageForTest(data):
    return data['percentageToTest']
 
-def getMultFactor(data):
-   return data['multiplicationFactor']
-
 def isResize(data):
    return data.has_key('resize')
+
+def rotate(data):
+   return data.has_key('rotate') and data['rotate']
+
+def colorAugment(data):
+   return data.has_key('colorAugment') and data['colorAugment']
 
 def getResize(data):
    return int(data['resize'])
 
+def isCrop(data):
+   return data.has_key('cropSize')
+
+def getSlide(data):
+   return data['slide'] if data.has_key('slide') else getCropSize(data)
+
 def getCropSize(data):
-   return data['cropSize'] if data.has_key('cropSize') else getResize(data)
+   return data['cropSize'] if data.has_key('cropSize') else 0
 
 def isSingleLabel(data):
    return data.has_key('labelIndex')
