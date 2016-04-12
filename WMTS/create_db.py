@@ -50,8 +50,8 @@ def main():
 
    count = 0
 
-   testMapSize = int(float(totalCount* 256*256*20) * 0.11)
-   trainMapSize = int(float(totalCount* 256*256*20) * 0.91)
+   testMapSize = int(float(totalCount* 256*256*24) * 0.11)
+   trainMapSize = int(float(totalCount* 256*256*24) * 0.91)
    out_db_train = lmdb.open('raw_train', map_size=trainMapSize)
    out_db_test = lmdb.open('raw_test', map_size=testMapSize)
    label_db_train = lmdb.open('groundtruth_train', map_size=trainMapSize)
