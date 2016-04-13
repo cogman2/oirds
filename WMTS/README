@@ -1,0 +1,35 @@
+(0) Download and unzip land-polygons-complete-4326 (http://openstreetmapdata.com/data/land-polygons)
+(1) modify the  wmts_create_config.py to add password and bounding box data.
+(2) Run wmts_create_config.py to get a config file.
+(3) Create an image directory
+(4) Change to that directory
+(5) run python wmts_driver.py with the 'config file' name as the commandline argument.  Run it nohup in the back ground.  It takes a while to load the  land polygons.
+(6) create the LMDB database using create_db.py.  It takes two arguments: (1) the image directory path and (2) the value (1-255) to represent the class of water (land is 0). 57 is the VCOC water class
+
+
+AWS has a map host ip ending in 136. The map host serves up images for the ground truth.
+The services are not starting automatically.
+To start: 
+sudo systemctl start postgresql
+sudo nohup /etc/init.d/geoserver start &
+
+Postgres was setup using instructions for installing OSM on Postgres for Mapnik : http://wiki.openstreetmap.org/wiki/Mapnik/Installation_on_Fedora_18
+
+How was the GeoServer setup?
+
+Load layers for planet_osm_line and planet_osm_polygon
+Also load the shapefile, from the OSM coast line data, land-polygons-split-4326
+For the shapefile, the Declared SRS is EPSG:4326.  SRS handling is Force declared. The publicing style is polygon.
+
+The OSM data maybe in EPSG-3857.  Make sure to set the Declared SRS to EPSG:4326 and SRS handing is to 'Reproject native to declared'.
+
+Use the osm_water_way_rogue style for planet_osm_polygon
+
+Create layer group called water_overlay for land_polygons and planet_osm_polygon in that ORDER!
+
+NOTE: Water is either blue or white (0xFFFFFF).  In either case, the blue portion of RGB is > 251.
+
+
+
+
+
