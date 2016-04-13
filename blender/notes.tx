@@ -1,5 +1,5 @@
-docker run rwgdrummer/blender -it
+sudo systemctl start docker
+docker run -it rwgdrummer/blender
 build_linux/bin/blender -b spitfire-for-export.blend  -F JPEG -noaudio -x 1 -o splitscene -a
-build_linux/bin/blender -b spitfire-for-export.blend sample.py
-
+build_linux/bin/blender -b spitfire-for-export.blend -P sample.py
 
