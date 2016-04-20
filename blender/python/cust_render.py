@@ -23,28 +23,43 @@ fov = 75
 
 scene = bpy.data.scenes["Scene"]
 
-
 #create new lamp datablock
 lamp_object = bpy.data.objects['Lamp']
 point_object = bpy.data.objects['Point']
 car_object = bpy.data.objects['PickUp']
 
-p1 = np.asarray((0.1,20.00000,25.00000))
-x_m = np.sqrt((p1*p1).sum())
+off_nadir = 25.0
+sun_elev = 51.1304
+sun_azimuth = 41.2039
+truck_object_x_rot=90
 
-ax = -math.atan(p1[1]/p1[2])
-ay = math.acos(p1[2]/(x_m*math.cos(ax)))
-az= math.atan(-math.cos(ax)*math.sin(ay)/math.sin(ax)) - math.atan(p1[0]/p1[1])
-lamp_object.location = p1
+lz = 40
+camera_angle = 90
+# 180 assumes the camera is aligned to the y axis
+lx = lz * math.cos(sun_elev) * math.cos(90 + camera_angle - sun_azimuth)
+ly = lz * math.cos(sun_elev) * math.sin(180 + camera_angle - sun_azimuth
 
-print (lamp_object.rotation_mode)
+lamp_loc = np.array([lx,ly,lz])
+
+lamp_len = np.sqrt((lamp_loc*lamp_loc).sum())
+ax = -math.atan(lamp_loc[1]/lamp_loc[2])
+ay = math.acos(lamp_loc[2]/(lamp_loc_len*math.cos(ax)))
+az= math.atan(-math.cos(ax)*math.sin(ay)/math.sin(ax)) - math.atan(lamp_loc[0]/lamp_loc[1])
+
+lamp_object.location = lamp_loc
+
+print(lamp_object.rotation_mode)
 print(lamp_object.rotation_euler)
+# can leave it in radians
 lamp_object.rotation_euler = (ax,ay,az)
 point_object.rotation_euler = (ax,ay,az)
 print(lamp_object.rotation_euler)
 
 print(car_object.rotation_euler)
-car_object.rotation_euler=(math.radians(90),math.radians(0),math.radians(round(random.uniform(-180,180),4)))
+truck_object_y_rot=round(random.uniform(-180,180),4)
+# insert function here to calculate the y angle.
+truck_object_y_rot=0
+car_object.rotation_euler=(math.radians(truck_object_x_rot),math.radians(truck_object_y_rot),math.radians(truck_object_z_rot))
 print(car_object.rotation_euler)
 
 range=[7.5,7.5]
