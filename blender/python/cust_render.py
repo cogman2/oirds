@@ -7,7 +7,7 @@ import img_meta
 imp = img_meta.ImgMetaProcess()
 imp.openFile('img_desc.csv')
 
-imd = img.images['img1.png']
+imd = imp.images['img1.png']
 
 # print all objects
 for obj in bpy.data.objects:
@@ -42,7 +42,7 @@ placement = imd.getImagePlace()
 
 # 180 assumes the camera is aligned to the y axis
 lx = lz * math.cos(sun_elev) * math.cos(90 + camera_angle - sun_azimuth)
-ly = lz * math.cos(sun_elev) * math.sin(180 + camera_angle - sun_azimuth
+ly = lz * math.cos(sun_elev) * math.sin(180 + camera_angle - sun_azimuth)
 
 lamp_loc = np.array([lx,ly,lz])
 

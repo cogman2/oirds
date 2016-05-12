@@ -1,5 +1,14 @@
 sudo systemctl start docker
+docker build -t rwgdrummer/blender .
 docker run -it rwgdrummer/blender
-build_linux/bin/blender -b truck_with_bg.blend -o ./out.png -P cust_render.py
+
+In another window find the document container id
+ docker ps
+c0d371447121        rwgdrummer/blender   "/bin/bash"         27 minutes ago      Up 27 minutes                           amazing_varahamihira
+
+copy to the docker container things you need (e.g. blend file, image files, img description file):
+docker cp ./truck_with_constraints_cycles.blend c0d371447121:/tmp/truck_with_constraints_cycles.blend
+
+build_linux/bin/blender -b truck_with_constraints_cycles.blend -o ./out.png -P cust_render.py
 build_linux/bin/blender -b truck_with_bg.blend -F JPEG -noaudio -x 1 -o splitscene -a
 
