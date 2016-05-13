@@ -2,13 +2,52 @@ sudo systemctl start docker
 docker build -t rwgdrummer/blender .
 docker run -it rwgdrummer/blender
 
+#If you are not familiar with docker, you may want to read about.
+#If you have a pre-built container, find the container
+docker ps -a
+# if the container is not but not running
+docker start containerid
+# once the container is running, attach
+docker exec -i -t container /bin/bash
+# you connect as blender user.
+# to connect as rout
+docker exec -u 0 -i -t container /bin/bash
+# the blender password id in the Dockerfile setup, if needed.  blender is a user in the Docker image
+# I gave blender user sudo privileges.
+
 In another window find the document container id
  docker ps
 c0d371447121        rwgdrummer/blender   "/bin/bash"         27 minutes ago      Up 27 minutes                           amazing_varahamihira
 
-copy to the docker container things you need (e.g. blend file, image files, img description file):
+#copy to the docker container things you need (e.g. blend file, image files, img description file).  For example:
 docker cp ./truck_with_constraints_cycles.blend c0d371447121:/tmp/truck_with_constraints_cycles.blend
+docker cp ./config.properties c0d371447121:/tmp/config.properties
+docker cp ./img_desc.csv c0d371447121:/tmp/img_desc.csv
+docker cp ./python/cust_render.py c0d371447121:/tmp/cust_render.py
+docker cp ./python/img_meta.py c0d371447121:/tmp/img_meta.p
+#...etc...
+#It may be easier to just tar everything including the image set up and send it over all it once and untar in blender's home directory
 
+#NOTE: out.png is ignored!!!!  The cust_render.py creates its own output files for each image generated.
 build_linux/bin/blender -b truck_with_constraints_cycles.blend -o ./out.png -P cust_render.py
-build_linux/bin/blender -b truck_with_bg.blend -F JPEG -noaudio -x 1 -o splitscene -a
 
+# The image descriptor file
+#   cars are assumed to pointed due east from this file (90 degrees)
+#format of the csv file:
+#image file name
+#x dim of image (pixels)
+#y dim of image
+#minimum rotation of vehicle (compass degrees)
+#maximum rotatio of vehicle
+#polygon for legal placement in pixel space
+#off nadir angle of camera
+#azimuth of sun
+#elevation of sun
+#zoom factor - this can be computed based on camera properties associated with image such as DOF
+#Example:
+img1.png,256,256,201,270,(20 50;100 50;100 175;20 200),25.0,41.2039,51.1304,1.0
+# an image can be repeated on multiple lines for different constraints (e.g polygons and rotations)
+
+#the config properties file goes with each blender file with associated camera setup
+image.count = how many images to create for each line of the file
+image.factor= a factor to convert pixel space positioning into blender positioning (x,y,z axis)  

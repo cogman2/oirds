@@ -8,7 +8,7 @@ import math
 class SceneControl(object):
 
     def __init__(self, **kwargs):
-        allowed_keys  = ['image_name', 'lamp_name','scene_name','car_name']
+        allowed_keys  = ['image_name', 'lamp_name','scene_name','car_name','car_rotation_axis']
         self.C = bpy.context
         self.D = bpy.data
         self.O = bpy.ops
@@ -16,13 +16,16 @@ class SceneControl(object):
         self.car_name = 'Group'
         self.scene_name = 'Scene'
         self.lamp_name = 'Lamp'
+        self.car_rotation_axis = 'z'
         self.__dict__.update((k, v) for k, v in kwargs.items() if k in allowed_keys)
 
 
     def object_list(self):
         return [ob.name for ob in self.D.objects]
 
-    def find_car(self):
+    #In lieu of using the contructor to set the car, a set of group name's can be used
+    # Use with caution because the group may not be the car
+    def find_car_from_group(self):
         self.car_names = ['Group','Group.001','Group.002','Group.003','Group.004','Group.005'] 
         objects = self.object_list()
         # print("Original car name is: ", self.car_name)
@@ -33,24 +36,34 @@ class SceneControl(object):
         #        print("chosen car is: ", self.car_name)
                 break
         
-
-    def scale_car(self, scale):
-        self.find_car()
+    def set_car_scale(self, scale):
         self.deselect_all()
         self.select_one(self.car_name)
         obj = self.C.active_object
         obj.scale = (scale, scale, scale)
 
-    def move_car(self, px, py, pz, z_rotation):
-        self.find_car()
-        self.select_one(self.car_name)
-        self.C.object.location = (px, py, pz)
-        self.C.object.rotation_euler = (0,0,0)
-        self.C.object.rotation_euler = (0,0,z_rotation)
+    def scale_car(self, scale_factor):
+        obj = self.D.objects[self.car_name]
+        obj.scale = obj.scale*scale_factor
+
+    def set_car_rotation(self,x,y,z):
+        obj = self.D.objects[self.car_name]
+        obj.rotation_euler = (x,y,z)
+
+# does not change car rotation two axis
+# different cars have an initial (x,y,z) rotation
+# the blender files should initialize the rotation such that the
+# car appears from the top looking straight from the camera
+# the axis rotate is confiurable
+    def move_car(self, px, py, pz, rotation):
+        obj = self.D.objects[self.car_name]
+        obj.location = (px, py, pz)
+        oe=obj.rotation_euler
+        ra=self.car_rotation_axis
+        obj.rotation_euler = (rotation if ra=='x' else oe[0],rotation if ra=='y' else oe[1], rotation if ra=='z' else oe[2])
         
     def move_lamp(self, sun_elev, sun_azimuth, sun_dist):
         deg2rad = math.pi/180.0
-        # self.select_one(self.lamp_name)
         px = sun_dist * math.cos(deg2rad * sun_elev) * math.sin(deg2rad * sun_azimuth)
         py = sun_dist * math.cos(deg2rad * sun_elev) * math.cos(deg2rad * sun_azimuth)
         pz = sun_dist * math.sin(deg2rad * sun_elev)
@@ -91,8 +104,7 @@ class SceneControl(object):
         self.C.scene.objects.active = self.D.objects[obj_name]
 
     def set_image_path(self, pathname):
-        #tree = self.D.scenes[self.scene_name].node_tree
-        tree = C.scene.node_tree
+        tree = self.C.scene.node_tree
         imgNode=[n for n in tree.nodes if n.name==self.image_name][0]
         imgNode.image.filepath=pathname
 

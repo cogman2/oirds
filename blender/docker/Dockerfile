@@ -33,7 +33,6 @@ RUN make && make altinstall
 WORKDIR /root
 RUN rm -rf /root/Python-3.5.1
 
-
 RUN mkdir -p /home/blender/src/blender-deps
 WORKDIR /home/blender/src/blender-deps/
 RUN wget http://ffmpeg.org/releases/ffmpeg-2.8.4.tar.gz
