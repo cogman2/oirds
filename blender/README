@@ -1,0 +1,57 @@
+high_satellite_image_with_atmosphere.blend  -- This blender uses a transparent plane between the camera/light and the image/car plane.  The plane provides a transpent blur with diffusion of light.  This simulates atmospheric affects.  It has a white delivery truck.  Anti-aliasing is turned through each of the ID mask nodes. It currently does not have the second light and output node to support generating the mask. Uses cycle renderer.
+
+truck_with_constraints_cycles.blend -- This blender uses a pick up truck.  This is the primary docker container with no additional plane.  This blender file does a second lamp(lamp) to be used for generating the output mask (see below).  Uses cycle renderer.
+
+truck_with_bg.blend -- This simple foundation for all the other cycle renderer blender files.  
+
+config.properties -- Used with the python/cust_render.py
+
+The image descriptor file:
+
+Cars are assumed to pointed due east from this file (90 degrees)
+The columns of the csv file are as follows:
+#image file name
+#x dim of image (pixels)
+#y dim of image
+#minimum rotation of vehicle (compass degrees)
+#maximum rotatio of vehicle
+#polygon for legal placement in pixel space
+#off nadir angle of camera
+#azimuth of sun
+#elevation of sun
+#zoom factor - this can be computed based on camera properties associated with image such as DOF
+Example:
+img1.png,256,256,201,270,(20 50;100 50;100 175;20 200),25.0,41.2039,51.1304,1.0
+
+Note:An image can be repeated on multiple lines for different constraints (e.g polygons and rotations).
+
+The config properties file goes with each blender file with associated camera setup.
+image.count = how many images to create for each line of the file
+image.factor= a factor to convert pixel space positioning into blender positioning (x,y,z axis)  
+ 
+Interim work status on generating output masks:
+
+We are trying to generate the mask from the shadow on the plane.  This is easy, pulling an output from one of the IDMasks (#1).
+However, we want the shadow to be as if the car is directly over head( do we ?).
+So, two choices:
+Render twice, one with the sun light set to the image for the full rendered image, one with the sun light over head for the mask (pulling the output from the IDMask).
+This involves 'keeping' the final output from the full rendered image on the first pass and the IDMask output on the second pass.  Not hard, adding some python code to cust_tender.py.  Another option is to create another layer to capture to separate shadow on another plane.  The additional plane, additional lamp are all part of this new layer.  The car would be in both.  The alias would be tied to a third iteration.
+In both cases there is a second Lamp (property in config.properties is called obj.mask_lamp_name).
+The first choice, render twice, is implemented.  It places good images in the 'images' directory and good masks in the 'masks' directory.  Everything else does into 'trash'.
+
+
+Interim status on injecting cars into blender:
+
+The central idea here is to have one blender file for the node structure and a set of blender files for each car model.  The cust_render.py remains the driver for our code.  The blender command is run in batch mode for the node structure blender file.  The cust_render use some mechanics to 
+(1)Open a car model (provided in the config.properties)
+(2)load car model into the blender image. 
+(3)scale car model to image based on image's meta data (zoom factor/level)
+(4)move the car based to a select location
+(5)render
+
+Cars do not need a consistent name, as the name is provided to the config.properties.
+Cars are expected to be oriented with the front along with positive 'x' axis and the top of the car being visibily facing the positive z axis.  Rotations are only applied to once axis, as described in the config.properties.
+Cars should be scaled exactly 2 grid length (length wise along x axis).  Thus, the length of the car is scaled to 2.  Car scale is adjusted by the zoom factor of the image (see the image properties).  Why 2? 1 is too small in most cases.  Need a consistent representation. However, the computation of the zoom_factor needs to consider image.factor as well ( not done at the moment ).
+delta_scale and delta_rotation_euler are used to adjust the scale and rotation of the car.
+
+Each run of blender will use the same car model for all iterations.  This makes it easier.   Running multiple car models implies that the blender batch with separate config.properties for each car model.
