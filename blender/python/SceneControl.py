@@ -3,7 +3,7 @@
 # Create the image using Blender API
 #
 import bpy
-import math
+from  math import *
 
 class SceneControl(object):
 
@@ -18,7 +18,7 @@ class SceneControl(object):
         self.lamp_name = 'Lamp'
         self.car_rotation_axis = 'z'
         self.__dict__.update((k, v) for k, v in kwargs.items() if k in allowed_keys)
-
+        self.deg2rad = pi/180
 
     def object_list(self):
         return [ob.name for ob in self.D.objects]
@@ -30,7 +30,7 @@ class SceneControl(object):
         objects = self.object_list()
         # print("Original car name is: ", self.car_name)
         for car_name in self.car_names:
-            print("Car name being examined is: ",car_name)
+        #    print("Car name being examined is: ",car_name)
             if car_name in objects:
                 self.car_name = car_name
         #        print("chosen car is: ", self.car_name)
@@ -63,12 +63,44 @@ class SceneControl(object):
         obj.rotation_euler = (rotation if ra=='x' else oe[0],rotation if ra=='y' else oe[1], rotation if ra=='z' else oe[2])
         
     def move_lamp(self, sun_elev, sun_azimuth, sun_dist):
-        deg2rad = math.pi/180.0
-        px = sun_dist * math.cos(deg2rad * sun_elev) * math.sin(deg2rad * sun_azimuth)
-        py = sun_dist * math.cos(deg2rad * sun_elev) * math.cos(deg2rad * sun_azimuth)
-        pz = sun_dist * math.sin(deg2rad * sun_elev)
+        px = sun_dist * cos(self.deg2rad * sun_elev) * sin(self.deg2rad * sun_azimuth)
+        py = sun_dist * cos(self.deg2rad * sun_elev) * cos(self.deg2rad * sun_azimuth)
+        pz = sun_dist * sin(self.deg2rad * sun_elev)
         obj = self.D.objects[self.lamp_name]
         obj.location = (px,py,pz)
+
+    def move_lamp_zFixed(self, sun_elev, sun_azimuth, pz):
+        # pz = 30
+        sun_dist = pz
+        px = sun_dist * (1.0/tan(self.deg2rad * sun_elev)) * sin(self.deg2rad * sun_azimuth)
+        py = sun_dist * (1.0/tan(self.deg2rad * sun_elev)) * cos(self.deg2rad * sun_azimuth)
+        obj = self.D.objects[self.lamp_name]
+        obj.location = (px,py,pz)
+
+
+
+    def move_lamp_guess(self, shadow_dir, shadow_len):
+        # shadow_dir measured from "up" y-axis, clockwise, just like sun azimuth
+        sun_dist = 30
+        if shadow_len == 'l': rho = 40
+        elif shadow_len == 'm': rho = 20
+        else: rho = 5
+        sun_azimuth = (180 +  shadow_dir) % 360
+        self.move_lamp_zfixed(self, sun_elev, sun_azimuth)
+        px = rho * cos(self.deg2rad * sun_azimuth)
+        py = rho * sin(self.deg2rad * sun_azimuth)
+        obj = self.D.objects[self.lamp_name]
+        obj.location = (px,py,sun_dist)
+
+
+    def move_lamp_camAngle(self, sun_elev, sun_azimuth, cam_angle, z):
+        # the camera angle is from "north" 
+        self.move_lamp_zFixed(sun_elev, sun_azimuth-(cam_angle - 180),z)
+
+    def adjust_off_nadir(self, off_nadir, cam_angle) 
+        pass
+
+
 
     def link_lamp(self):
         self.select_one(self.lamp_name)
