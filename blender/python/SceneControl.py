@@ -44,7 +44,7 @@ class SceneControl(object):
 
     def scale_car(self, scale_factor):
         obj = self.D.objects[self.car_name]
-        obj.scale = obj.scale*scale_factor
+        obj.delta_scale =(scale_factor,scale_factor,scale_factor)
 
     def set_car_rotation(self,x,y,z):
         obj = self.D.objects[self.car_name]
@@ -60,7 +60,7 @@ class SceneControl(object):
         obj.location = (px, py, pz)
         oe=obj.rotation_euler
         ra=self.car_rotation_axis
-        obj.rotation_euler = (rotation if ra=='x' else oe[0],rotation if ra=='y' else oe[1], rotation if ra=='z' else oe[2])
+        obj.delta_rotation_euler = (rotation if ra=='x' else 0,rotation if ra=='y' else 0, rotation if ra=='z' else 0)
         
     def move_lamp(self, sun_elev, sun_azimuth, sun_dist):
         px = sun_dist * cos(self.deg2rad * sun_elev) * sin(self.deg2rad * sun_azimuth)
