@@ -97,7 +97,7 @@ class SceneControl(object):
         # the camera angle is from "north" 
         self.move_lamp_zFixed(sun_elev, sun_azimuth-(cam_angle - 180),z)
 
-    def adjust_off_nadir(self, off_nadir, cam_angle) 
+    def adjust_off_nadir(self, off_nadir, cam_angle): 
         pass
 
 
