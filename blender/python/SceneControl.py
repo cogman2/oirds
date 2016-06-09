@@ -23,7 +23,7 @@ class SceneControl(object):
     def object_list(self):
         return [ob.name for ob in self.D.objects]
 
-    #In lieu of using the contructor to set the car, a set of group name's can be used
+    #In lieu of using the constructor to set the car, a set of group name's can be used
     # Use with caution because the group may not be the car
     def find_car_from_group(self):
         self.car_names = ['Group','Group.001','Group.002','Group.003','Group.004','Group.005'] 
@@ -79,25 +79,31 @@ class SceneControl(object):
 
 
 
-    def move_lamp_guess(self, shadow_dir, shadow_len):
+    def move_lamp_guess(self, shadow_dir, shadow_len, pz):
         # shadow_dir measured from "up" y-axis, clockwise, just like sun azimuth
-        sun_dist = 30
-        if shadow_len == 'l': rho = 40
-        elif shadow_len == 'm': rho = 20
-        else: rho = 5
+        sun_dist = pz
+        if shadow_len == 'l': 
+            rho = 40
+            sun_elev = 20
+        elif shadow_len == 'm': 
+            rho = 20
+            sun_elev = 40
+        else: 
+            rho = 5
+            sun_elev = 60
         sun_azimuth = (180 +  shadow_dir) % 360
-        self.move_lamp_zfixed(self, sun_elev, sun_azimuth)
+#        self.move_lamp_zFixed(self, sun_elev, sun_azimuth)
         px = rho * cos(self.deg2rad * sun_azimuth)
         py = rho * sin(self.deg2rad * sun_azimuth)
         obj = self.D.objects[self.lamp_name]
-        obj.location = (px,py,sun_dist)
+        obj.location = (px,py,pz)
 
 
-    def move_lamp_camAngle(self, sun_elev, sun_azimuth, cam_angle, z):
+    def move_lamp_camAngle(self, sun_elev, sun_azimuth, cam_angle, pz):
         # the camera angle is from "north" 
-        self.move_lamp_zFixed(sun_elev, sun_azimuth-(cam_angle - 180),z)
+        self.move_lamp_zFixed(sun_elev, sun_azimuth-(cam_angle - 180),pz)
 
-    def adjust_off_nadir(self, off_nadir, cam_angle) 
+    def adjust_off_nadir(self, off_nadir, cam_angle): 
         pass
 
 
