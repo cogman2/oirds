@@ -12,12 +12,13 @@ RUN yum install -y sudo
 RUN yum -y install wget
 RUN yum -y install openssl openssl-devel
 RUN yum -y install bzip2-devel openssl-devel ncurses-devel
+RUN yum groupinstall "Development tools" -y
 
 # Edit sudoers file # To avoid error: sudo: sorry, you must have a tty to run sudo
 RUN sed -i -e "s/Defaults    requiretty.*/ #Defaults    requiretty/g" /etc/sudoers
 RUN echo "blender ALL=(ALL)       ALL" >> /etc/sudoers
 
-RUN rpm -Uvh http://download.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
+RUN rpm -Uvh http://download.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-6.noarch.rpm
 RUN rpm -Uvh http://download1.rpmfusion.org/free/el/updates/6/i386/rpmfusion-free-release-6-1.noarch.rpm
 RUN rpm -Uvf http://dl.fedoraproject.org/pub/epel/7/x86_64/g/geos-3.4.2-2.el7.x86_64.rpm
 RUN rpm -Uvf http://dl.fedoraproject.org/pub/epel/7/x86_64/g/geos-devel-3.4.2-2.el7.x86_64.rpm
@@ -53,14 +54,18 @@ RUN make
 WORKDIR /home/blender
 RUN rm blender-2.77.tar.gz && mkdir tmp && chown -R blender:blender * 
 
-ENV PYTHONHOME /usr/local/lib/python3.5
+#ENV PYTHONHOME /usr/local/lib/python3.5
+#ENV PYTHONPATH /usr/local/lib/python3.5:/usr/local/bin
 ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/blender/build_linux/bin
 RUN /usr/local/bin/pip3.5 install --upgrade pip
-RUN pip3.5 install shapely
+RUN /usr/local/bin/pip3.5 install shapely
+#RUN /usr/local/bin/pip install shapely
 WORKDIR /home/blender/build_linux/bin/2.77/python/lib/python3.5
 RUN ln -s  /usr/local/lib/python3.5/site-packages/shapely shapely
 WORKDIR /home/blender
-RUN chown -R *
+RUN yum -y install emacs
+#RUN chown -R *
+RUN chown -R blender:blender /home/blender
 
 USER blender
 ENV PYTHONHOME /usr/local/lib/python3.5/
