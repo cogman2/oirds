@@ -72,7 +72,9 @@ ENV PYTHONHOME /usr/local/lib/python3.5/
 ENV PYTHONPATH /home/blender:/home/blender/build_linux/bin/2.77/python/lib:/usr/local/lib/python3.5
 ENV TMP /home/blender/tmp
 ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/blender/build_linux/bin
-
+COPY SceneControl.py img_meta.py cust_render.py  \
+     img_desc.csv truck_with_constraints_cycles.blend config.properties /home/blender/
+COPY img1.png img2.png img3.png  /home/blender/
 
 VOLUME /home/blender
 #ENTRYPOINT ["/usr/local/blender/blender", "-b"]
