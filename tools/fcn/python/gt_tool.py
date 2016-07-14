@@ -1,44 +1,36 @@
+import sys
 import json_tools
 import numpy as np
 import pandas as pd
 from PIL import Image
 import image_set
+import pudb
 
-def placeCoordPolyInImage(img, dimensions, poly, bbox, indices, colorIndex,color):
-   xv = (bbox[2] - bbox[0])/dimensions[0]
-   yv = (bbox[3] - bbox[1])/dimensions[1]
-   for x in xrange(dimensions[0]):
-     for y in xrange(dimensions[1]):
-       if poly.contains(Point(bbox[0]+x*xv, bbox[1]+y*yv)):
-           img.putpixel((x, y), color)
-           indices[0,x,y]=colorIndex
+OIRDS_ROOT='/home/robertsneddon/oirds/'   
+COCO_ROOT='/data2/MS_COCO/'
+TOOLS_ROOT=OIRDS_ROOT+'tools/fcn/python/' 
+A_ROOT=COCO_ROOT+'annotations/'
+R_ROOT=COCO_ROOT+'results/'
+I_ROOT=COCO_ROOT+'images/'
+#A_FILE='instances_val2014.json'
+A_FILE='instances_train2014.json'
+annType = ['segm','bbox']
+annType = annType[1]
+dataDir=COCO_ROOT+'images'
+dataType='val2014'
+resFile='%s/results/instances_%s_fake%s100_results.json'
+resFile=resFile%(dataDir, dataType, annType)
+configFile=OIRDS_ROOT+'example_config/create_db.json'
+cocoConfigFile=OIRDS_ROOT+'example_config/create_coco_db.json'
 
-def convertPoly(dimensions, poly, bbox):
-   xv = (bbox.bounds[2] - bbox.bounds[0])/dimensions[0]
-   yv = (bbox.bounds[3] - bbox.bounds[1])/dimensions[1]
-   r = list()
-   for p in poly.exterior.coords:
-     if (bbox.covers(Point(p[0],p[1]))):
-       xd = (x[0] - bbox.bounds[0])/xv
-       yd = (y[0] - bbox.bounds[1])/yv
-       r.append([xd,yd])
-   return r
-   
-def placePolyInImage(img, poly, indices, colorIndex, color):
-    from shapely.geometry import Point
-    width, length = img.size
-    bounds = poly.bounds
-    for x in (xrange(int(bounds[0]),int(bounds[2]))):
-       for y in (xrange(int(bounds[1]),int(bounds[3]))):
-         if poly.contains(Point(x, y)):
-           img.putpixel((x, y), color)
-           indices[0,x,y]=colorIndex
+sys.path.append(COCO_ROOT+'coco/PythonAPI/')
+sys.path.append(COCO_ROOT+'coco/PythonAPI/pycocotools/')
+sys.path.append(TOOLS_ROOT)
 
-def rgb2gray(rgb):
-    return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
-  
+
 class GTTool:
   """A Class to manage creation of ground truth and image set databases"""
+
 
   label_colors = [(0,0,0),(228,100,27),(182,228,27),(27,228,140),(27,73,228),(216,13,54),(56,100,6),(155,12,216)]
   modes =  []
@@ -84,6 +76,83 @@ class GTTool:
         self.xlsInfo = self.xlsInfo.append( pd.read_excel( io=xlsFile, parse_cols=xlsInfoColumns, ignore_index=True ) )
 
      self.xlsInfo = self.xlsInfo.reset_index()
+
+
+  def loadCoco(self):
+     import json_tools
+     import itertools
+     import os
+     import glob
+     from pycocotools.coco import COCO
+     '''
+     Need to rewrite the below material
+     '''
+     xlsInfoColumns = json_tools.getXLSColumns(self.config)
+     print xlsInfoColumns
+     #dataDirs = [self.parentDataDir+z for z in filter( lambda x: x.startswith( "DataSet_" ), os.listdir( self.parentDataDir ) )]
+     dataDirs = [self.parentDataDir+z for z in filter( lambda x: x.endswith("2014"),  os.listdir( self.parentDataDir))]
+     print dataDirs
+#
+# Change the below to reading in the names of the image files
+#
+     xlsFiles = list( itertools.chain( *[ glob.glob( x + "/*.jpg" ) for x in dataDirs ] ) )
+# Creates list of all jpg files in the COCO dataset
+     #print xlsFiles
+     sxlsInfoColumns = np.copy(xlsInfoColumns)
+     sxlsInfoColumns.sort()
+     cl = sxlsInfoColumns.tolist();
+#
+#    Need to correct for COCO dataset
+#
+     self.nameIndex = cl.index( xlsInfoColumns[0])+1
+     self.polyIndex = cl.index( xlsInfoColumns[1])+1
+     self.modeIndex = cl.index( xlsInfoColumns[2])+1
+#
+# Replace below with a use of xlsInfo which appends file names to the 3rd column and numbering in the 1rst column (from 0).
+#
+#     for xlsFile in xlsFiles:
+#        self.xlsInfo = self.xlsInfo.append( pd.read_excel( io=xlsFile, parse_cols=xlsInfoColumns, ignore_index=True ) )
+      xlsInfo[self.nameIndex] = xlsFiles
+
+#
+# Add a second column with polygon/bbox information (altered to oirds format); pulled using COCO pythonAPI
+#
+
+
+
+     self.xlsInfo = self.xlsInfo.reset_index()
+
+
+  def cocoData(self, targets):
+# targets is a list of desired categories
+     import pandas as pd
+     self.coco = COCO(A_ROOT + A_FILE)
+     imgKeys=self.coco.imgs.keys()
+     annKeys=self.coco.anns.keys()
+     targetId=self.coco.getCatIds(target)
+     cats = self.coco.loadCats(self.coco.getCatIds())
+     nms=[cat['name'] for cat in cats]
+#     catIds = self.coco.getCatIds(catNms=['person','dog','skateboard'])
+     catIds = self.coco.getCatIds(catNms=targets)
+     imgIds = self.coco.getImgIds(catIds=catIds)
+# Below pulls a random image of the category
+#     img = self.coco.loadImgs(imgIds[np.random.randint(0,len(imgIds))])[0]
+     img = self.coco.loadImgs(imgIds[np.random.randint(0,len(imgIds))])
+     annIds = self.coco.getAnnIds(imgIds=imgIds, catIds=catIds, iscrowd=None)
+#     annIds = self.coco.getAnnIds(imgIds=img['id'], catIds=catIds, iscrowd=None)
+     anns = self.coco.loadAnns(annIds)
+     my_poly = anns[0]['segmentation']
+     my_bb = anns[0]['bbox']
+     my_category = anns[0]['category_id']
+     files = [im['file_name'] for im in img]
+     polys = [ann['segmentation'] for ann in anns]
+     bboxs = [ann['bbox'] for ann in anns]
+     target_ids = [ann['category_id'] for ann in anns]
+#     return imgIds, catIds, annIds, anns
+     df_info = pd.DataFrame(zip(*[files,bboxs,target_ids,polys]),columns=['files','bboxs','targets','polys'])
+#     return files, polys, bbxs, target_ids, anns
+     return df_info, anns
+
 
   def getTestNames(self, percent, testSlice):
      testNames= set()
@@ -150,3 +219,37 @@ class GTTool:
         self.label_colors.append((np.random.randint(0,255),np.random.randint(0,255),np.random.randint(0,255)))
      return self.label_colors[colorIndex]
 
+
+def placeCoordPolyInImage(img, dimensions, poly, bbox, indices, colorIndex,color):
+   xv = (bbox[2] - bbox[0])/dimensions[0]
+   yv = (bbox[3] - bbox[1])/dimensions[1]
+   for x in xrange(dimensions[0]):
+     for y in xrange(dimensions[1]):
+       if poly.contains(Point(bbox[0]+x*xv, bbox[1]+y*yv)):
+           img.putpixel((x, y), color)
+           indices[0,x,y]=colorIndex
+
+def convertPoly(dimensions, poly, bbox):
+   xv = (bbox.bounds[2] - bbox.bounds[0])/dimensions[0]
+   yv = (bbox.bounds[3] - bbox.bounds[1])/dimensions[1]
+   r = list()
+   for p in poly.exterior.coords:
+     if (bbox.covers(Point(p[0],p[1]))):
+       xd = (x[0] - bbox.bounds[0])/xv
+       yd = (y[0] - bbox.bounds[1])/yv
+       r.append([xd,yd])
+   return r
+   
+def placePolyInImage(img, poly, indices, colorIndex, color):
+    from shapely.geometry import Point
+    width, length = img.size
+    bounds = poly.bounds
+    for x in (xrange(int(bounds[0]),int(bounds[2]))):
+       for y in (xrange(int(bounds[1]),int(bounds[3]))):
+         if poly.contains(Point(x, y)):
+           img.putpixel((x, y), color)
+           indices[0,x,y]=colorIndex
+
+def rgb2gray(rgb):
+    return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
+  
