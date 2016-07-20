@@ -25,8 +25,8 @@ from gt_tool import *
 
 A_ROOT=COCO_ROOT+'annotations/'                              # Path to annotations files
 R_ROOT=COCO_ROOT+'results/'
-#A_FILE='instances_train2014.json'                            # Specific annotation file
-A_FILE='instances_val2014.json'                            # Specific annotation file
+A_FILE='instances_train2014.json'                            # Specific annotation file
+#A_FILE='instances_val2014.json'                            # Specific annotation file
 annType = ['segm','bbox']
 annType = annType[1]
 dataDir=COCO_ROOT+'images'
@@ -45,6 +45,9 @@ def load_data(bool):
 def save_data(coco_object):
     pickle.dump(coco_object, open( "coco_object_save.p", "wb") )
 
+#targets = ['person','dog','skateboard']
+#targets = ['car']
+'''
 coco=load_data(True);
 cocoDt = coco.loadRes(resFile)
 cats = coco.loadCats(coco.getCatIds())
@@ -57,6 +60,8 @@ anns = coco.loadAnns(annIds)
 my_poly = anns[0]['segmentation']
 my_bb = anns[0]['bbox']
 my_category = anns[0]['category_id']
-
+'''
 config = json.load(open(configFile))
 gttool = GTTool(config)
+df_info = gttool.loadCoco()
+#print df_info
