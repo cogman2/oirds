@@ -97,7 +97,8 @@ RUN git clone --recursive https://github.com/rbgirshick/py-faster-rcnn.git && \
     cp Makefile.config.example Makefile.config && \
     \
     echo "CXX := /usr/bin/g++-4.9" >> Makefile.config && \
-    echo "ANACONDA_HOME := /opt/anaconda2" >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+     echo "ANACONDA_HOME := /opt/anaconda2" >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+    echo "USE_CUDNN := 1" >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
     echo 'PYTHON_INCLUDE := $(ANACONDA_HOME)/include $(ANACONDA_HOME)/include/python2.7 $(ANACONDA_HOME)/lib/python2.7/site-packages/numpy/core/include' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
     echo 'PYTHON_LIB := $(ANACONDA_HOME)/lib' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
     echo 'INCLUDE_DIRS := $(PYTHON_INCLUDE) /usr/local/include' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
@@ -113,6 +114,24 @@ RUN make
 
 WORKDIR /opt/py-faster-rcnn/caffe-fast-rcnn
 RUN make -j8  && make pycaffe
+
+# Fixing a couple of scripts
+WORKDIR /opt/py-faster-rcnn/lib/fast_rcnn
+RUN sed -i 's/__C.USE_GPU_NMS = True/__C.USE_GPU_NMS = False/' config.py
+
+WORKDIR /opt/py-faster-rcnn/tools
+RUN sed -i "15iimport matplotlib" demo.py && \
+    sed -i "16imatplotlib.use('Agg')" demo.py
+
+# Installing VOC2007, comment out if not needed
+WORKDIR /opt/py-faster-rcnn/data
+RUN wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtrainval_06-Nov-2007.tar && \
+wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtest_06-Nov-2007.tar && \
+wget http://www.cs.berkeley.edu/~rbg/fast-rcnn-data/selective_search_data.tgz && \
+wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCdevkit_08-Jun-2007.tar && \
+ls *.tar | xargs -i tar xvf {} && \
+tar -xzf selective_search_data.tgz && \
+mv VOCdevkit VOCdevkit2007 
 
 # Extras
 RUN sudo apt-get install -y vim emacs
