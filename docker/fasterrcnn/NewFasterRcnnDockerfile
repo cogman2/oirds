@@ -135,6 +135,9 @@ mv VOCdevkit VOCdevkit2007
 
 # Extras
 RUN sudo apt-get install -y vim emacs
+RUN ./scripts/fetch_faster_rcnn_models.sh && \
+./scripts/fetch_imagenet_models.sh
+
 
 WORKDIR /opt
 CMD ["bash"]
