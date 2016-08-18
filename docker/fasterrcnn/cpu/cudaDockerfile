@@ -119,15 +119,3 @@ CMD ["jupyter", "notebook", "--no-browser", "/dev/null"]
 
 # docker run -d -i -t --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm --net=host --volume /home/holcomdl/workspace:/home -p 127.0.0.1:8001:8888 dlword2vec:ubuntu
 # http://localhost:6667/home/notebooks/opt/dlWord2vec/MVN%20Example%20Python%20Notebook.ipynb
-
-# Install cudnn
-ENV CUDNN_VERSION 5
-LABEL com.nvidia.cudnn.version="5"
-
-ENV CUDNN_DOWNLOAD_SUM 40d506d0a8a00a3faccce1433346806b8cd2535683b6f08a63683ce6e474419f
-
-RUN curl -fsSL http://developer.download.nvidia.com/compute/redist/cudnn/v5.1/cudnn-7.5-linux-x64-v5.1.tgz -O && \
-    echo "$CUDNN_DOWNLOAD_SUM  cudnn-7.5-linux-x64-v5.1.tgz" | sha256sum -c --strict - && \
-    tar -xzf cudnn-7.5-linux-x64-v5.1.tgz -C /usr/local --wildcards 'cuda/lib64/libcudnn.so.*' && \
-    rm cudnn-7.5-linux-x64-v5.1.tgz && \
-    ldconfig
