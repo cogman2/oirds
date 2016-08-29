@@ -1,0 +1,126 @@
+FROM ubuntu:14.04
+MAINTAINER  R. Sneddon <581894@bah.com>
+# Shamelessly adapted from  D. Holcomb <556157@bah.com>
+
+RUN         apt-get update \
+                && apt-get install -y \
+                    software-properties-common \
+                    wget \
+                && echo 'deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.4 main' >> /etc/apt/sources.list \
+                && wget --no-check-certificate -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add - 
+RUN             add-apt-repository -y ppa:ubuntu-toolchain-r/test
+RUN             apt-get update \
+                && apt-get install -y \
+                    make \
+                    git \
+                    curl \
+                    ruby \
+                && apt-get install -y \
+                    xorg-dev \
+                    libglu1-mesa-dev \
+                && apt-get install -y \
+                    gcc-4.9 g++-4.9 gcc-4.9-base \
+                    gcc-4.8 g++-4.8 gcc-4.8-base \
+                    gcc-4.7 g++-4.7 gcc-4.7-base \
+                    gcc-4.6 g++-4.6 gcc-4.6-base \
+                    clang-3.4 lldb-3.4 \
+                && gem install rake \
+                && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 100 \
+                && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 100 \
+                && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 100 \
+                && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 100
+
+# build cmake
+RUN curl -fsSLO -k http://www.cmake.org/files/v3.2/cmake-3.2.1.tar.gz \  
+    && tar zxf cmake-3.2.1.tar.gz \
+    && cd cmake-3.2.1 \  
+    &&  ./bootstrap \
+                && make \
+                && make install \
+    && cd .. \
+    && rm -rf cmake-3.2.1 cmake-3.2.1.tar.gz
+
+
+# CUDA 7.5
+ENV cudaPkg cuda_7.5.18_linux.run
+ENV cudaUrl http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/$cudaPkg
+ENV cudaDriverVers 352.93
+ENV cudaDriverName NVIDIA-Linux-x86_64-$cudaDriverVers.run
+ENV cudaDriverUrl http://us.download.nvidia.com/XFree86/Linux-x86_64/$cudaDriverVers/$cudaDriverName
+ENV cudaLoc /usr/local/cuda
+
+# Install CUDA, general implementation for all but 4.2
+# Also remove doc,samples,nvvp to save some space
+RUN curl -fsSLO $cudaUrl \
+    && chmod 755 $cudaPkg 
+
+RUN mkdir /opt/cudaInstaller \
+    && ./$cudaPkg -extract='/opt/cudaInstaller' 
+
+# Overwrite the driver we get automatically with 7.5.18 (352.39) with the version of our actual gpu (352.93)
+RUN rm /opt/cudaInstaller/NVIDIA-Linux-x86_64-*.run
+RUN  curl -fsSLO $cudaDriverUrl \
+     && chmod 775 $cudaDriverName \
+     && mv $cudaDriverName /opt/cudaInstaller
+
+# Install the driver
+RUN ./opt/cudaInstaller/NVIDIA-Linux-x86_64-*.run -s --no-kernel-module
+
+# install the toolkit
+RUN ./opt/cudaInstaller/cuda-linux64-rel-7.5.18-*.run -noprompt
+
+# RUN ./$cudaPkg --silent --driver --toolkit --override \
+RUN rm -rf $cudaPkg 
+
+# Add CUDA to ld.so.conf
+RUN echo $cudaLoc/lib64 >> /etc/ld.so.conf \
+    && echo $cudaLoc/lib >> /etc/ld.so.conf \
+    && ldconfig
+
+ENV PATH /usr/local/cuda/bin:${PATH}
+ENV LD_LIBRARY_PATH /usr/local/cuda/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
+
+# configure git
+RUN git config --global http.sslVerify false
+RUN git config --global url."https://".insteadOf git://
+
+# install blas
+RUN apt-get install -y libblas*
+
+# install python    
+RUN wget --no-check-certificate https://3230d63b5fc54e62148e-c95ac804525aac4b6dba79b00b39d1d3.ssl.cf1.rackcdn.com/Anaconda2-2.4.1-Linux-x86_64.sh
+RUN chmod 775 Anaconda2-2.4.1-Linux-x86_64.sh 
+RUN ./Anaconda2-2.4.1-Linux-x86_64.sh -b -p /opt/anaconda2/
+ENV PATH=/opt/anaconda2/bin/:$PATH
+RUN conda update conda
+RUN conda config --set ssl_verify False
+#RUN conda update openssl cryptography && \
+#    conda update certifi
+RUN conda install -c https://conda.anaconda.org/asmeurer pandoc
+
+# install jupyter notebook
+RUN conda install ipython
+RUN conda install jupyter
+
+# update jupyter settings to allow outside connections
+# vi root/.jupyter/jupyter_notebook_config.py
+RUN mkdir -p -m 700 /root/.jupyter/ && \ 
+    echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.base_url = '/home/'" >> /root/.jupyter/jupyter_notebook_config.py
+
+# add matplotlib
+RUN conda install matplotlib
+RUN conda install scikit-learn
+
+# Add Tini. Tini operates as a process subreaper for jupyter. This prevents
+# kernel crashes.
+ENV TINI_VERSION v0.6.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
+RUN chmod +x /usr/bin/tini
+ENTRYPOINT ["/usr/bin/tini", "--"]
+
+#CMD ["jupyter", "notebook", "--port=8001", "--no-browser", "--ip=127.0.0.1"]
+CMD ["jupyter", "notebook", "--no-browser", "/dev/null"]
+
+# docker run -d -i -t --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm --net=host --volume /home/holcomdl/workspace:/home -p 127.0.0.1:8001:8888 dlword2vec:ubuntu
+# http://localhost:6667/home/notebooks/opt/dlWord2vec/MVN%20Example%20Python%20Notebook.ipynb

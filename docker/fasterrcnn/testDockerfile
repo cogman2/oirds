@@ -1,0 +1,8 @@
+FROM centos:5
+MAINTAINER  R. Sneddon <581894@bah.com>
+# Shamelessly adapted from  D. Holcomb <556157@bah.com>
+
+RUN  echo "done"
+
+CMD "/bin/bash"
+

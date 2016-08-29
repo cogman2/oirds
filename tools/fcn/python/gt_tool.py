@@ -6,9 +6,16 @@ from PIL import Image
 import image_set
 import pudb
 
-OIRDS_ROOT='/home/robertsneddon/oirds/'   
-COCO_ROOT='/data2/MS_COCO/'
-TOOLS_ROOT=OIRDS_ROOT+'tools/fcn/python/' 
+#COCO_ROOT='/data2/MS_COCO/'
+COCO_ROOT='/opt/py-faster-rcnn/data/coco/'
+#OIRDS_ROOT='/home/robertsneddon/oirds/' 
+OIRDS_ROOT='/opt/py-faster-rcnn/oirds/' 
+TOOLS_ROOT=OIRDS_ROOT+'tools/fcn/python/'                    # Path to python tools for Caffe deep learning
+#sys.path.append(COCO_ROOT+'coco/PythonAPI/')
+#sys.path.append(COCO_ROOT+'coco/PythonAPI/pycocotools/')
+sys.path.append('/opt/py-faster-rcnn/data/coco-master/PythonAPI')
+sys.path.append('/opt/py-faster-rcnn/data/coco-master/PythonAPI/pycocotools/')
+sys.path.append(TOOLS_ROOT)
 A_ROOT=COCO_ROOT+'annotations/'
 R_ROOT=COCO_ROOT+'results/'
 I_ROOT=COCO_ROOT+'images/'
@@ -16,7 +23,7 @@ I_ROOT=COCO_ROOT+'images/'
 A_FILE='instances_train2014.json'
 annType = ['segm','bbox']
 annType = annType[1]
-dataDir=COCO_ROOT+'images'
+dataDir=COCO_ROOT+'images/'
 dataType='val2014'
 resFile='%s/results/instances_%s_fake%s100_results.json'
 resFile=resFile%(dataDir, dataType, annType)
@@ -142,7 +149,8 @@ class GTTool:
                     except:
                         continue
                 j = 0
-                polyStr = '['
+#                polyStr = '['
+                polyStr = ''
                 while True:
                     try: 
                         isinstance(poly[j], list)
@@ -153,7 +161,8 @@ class GTTool:
                         j += 1
                     except:
                         break
-                polyStr = polyStr + ']'
+                polyStr = polyStr.replace('][','],[')
+#                polyStr = polyStr + ']'
                 df.loc[i, ('Poly Temp')] = polyStr 
 
         return df

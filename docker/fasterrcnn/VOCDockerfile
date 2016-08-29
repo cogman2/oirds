@@ -25,5 +25,15 @@ RUN ./scripts/fetch_faster_rcnn_models.sh && \
 ./scripts/fetch_imagenet_models.sh && \
 sed -i "121icfg.TRAIN.BBOX_REG = False" ../lib/roi_data_layer/layer.py
 
+RUN conda config --set ssl_verify False && \
+    conda install -c mutirri pudb=2013.5.1
+RUN    apt-get install zip && \
+       wget https://github.com/pdollar/coco/archive/master.zip
+RUN       unzip master.zip 
+WORKDIR /opt/py-faster-rcnn/data/coco-master/PythonAPI
+RUN	make \
+	&& make install
+
+
 WORKDIR /opt
 CMD ["bash"]

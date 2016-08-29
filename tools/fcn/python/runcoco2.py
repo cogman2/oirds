@@ -3,11 +3,15 @@
 # the Faster R-CNN
 #
 import sys
-COCO_ROOT='/data2/MS_COCO/'
-OIRDS_ROOT='/home/robertsneddon/oirds/' 
+#COCO_ROOT='/data2/MS_COCO/'
+COCO_ROOT='/opt/py-faster-rcnn/data/'
+#OIRDS_ROOT='/home/robertsneddon/oirds/' 
+OIRDS_ROOT='/opt/py-faster-rcnn/oirds/' 
 TOOLS_ROOT=OIRDS_ROOT+'tools/fcn/python/'                    # Path to python tools for Caffe deep learning
-sys.path.append(COCO_ROOT+'coco/PythonAPI/')
-sys.path.append(COCO_ROOT+'coco/PythonAPI/pycocotools/')
+#sys.path.append(COCO_ROOT+'coco/PythonAPI/')
+#sys.path.append(COCO_ROOT+'coco/PythonAPI/pycocotools/')
+sys.path.append('/opt/py-faster-rcnn/data/coco-master/PythonAPI')
+sys.path.append('/opt/py-faster-rcnn/data/coco-master/PythonAPI/pycocotools/')
 sys.path.append(TOOLS_ROOT)
 import pickle
 import pudb

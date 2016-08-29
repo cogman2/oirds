@@ -1,4 +1,4 @@
-FROM rsneddon/cudapython
+FROM rsneddon/cudapythongpu
 MAINTAINER Robert Sneddon <581894@bah.com>
 
 # ADD tools/ /tmp
@@ -6,6 +6,15 @@ MAINTAINER Robert Sneddon <581894@bah.com>
 ENV PYTHONPATH=/opt/py-faster-rcnn/caffe-fast-rcnn/python:$PYTHONPATH \
     PATH=/opt/anaconda2/bin:$PATH \
     LD_LIBRARY_PATH=/opt/anaconda2/lib:/opt/libpng-1.5.15/lib:$LD_LIBRARY_PATH
+
+RUN         apt-get install -y ca-certificates
+COPY        ASHBBCPSG.crt /usr/local/share/ca-certificates
+
+RUN	        update-ca-certificates \
+	        && export REQUESTS_CA_BUNDLE=/usr/local/share/ca-certificates/ASHBBCPSG.crt \
+                && apt-get install -y \
+                    software-properties-common
+
 
 # Get dependencies
 RUN apt-get update && apt-get install -y \
@@ -100,17 +109,19 @@ RUN git clone --recursive https://github.com/rbgirshick/py-faster-rcnn.git && \
      echo "ANACONDA_HOME := /opt/anaconda2" >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
     echo "USE_CUDNN := 1" >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
     echo 'PYTHON_INCLUDE := $(ANACONDA_HOME)/include $(ANACONDA_HOME)/include/python2.7 $(ANACONDA_HOME)/lib/python2.7/site-packages/numpy/core/include' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+    echo 'CUDNN_INCLUDE := /usr/include' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+    echo 'CUDNN_LIB := /usr/lib/x86_64-linux-gnu/' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
     echo 'PYTHON_LIB := $(ANACONDA_HOME)/lib' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
-    echo 'INCLUDE_DIRS := $(PYTHON_INCLUDE) /usr/local/include' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
-    echo 'LIBRARY_DIRS := $(PYTHON_LIB) /usr/local/lib /usr/lib' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+    echo 'INCLUDE_DIRS := $(PYTHON_INCLUDE) $(CUDNN_INCLUDE) /usr/local/include' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+    echo 'LIBRARY_DIRS := $(PYTHON_LIB) $(CUDNN_LIB) /usr/local/lib /usr/lib' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
     echo 'WITH_PYTHON_LAYER := 1' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
     sed -i 's/CXX :=/CXX ?=/' Makefile 
 
 WORKDIR /opt/py-faster-rcnn/caffe-fast-rcnn/python 
-#RUN    pip install --yes leveldb
-
-#RUN pip install --index-url=http//pypi.python.org/simple/ -r requirements.txt
-RUN pip install -r requirements.txt
+#RUN    pip install  --index-url=http//pypi.python.org/simple/ leveldb
+RUN pip install  --cert=/usr/local/share/ca-certificates/ASHBBCPSG.crt leveldb
+#RUN pip install --cert=/usr/local/share/ca-certificates/ASHBBCPSG.crt --index-url=http//pypi.python.org/simple/ -r requirements.txt
+RUN pip install  --cert=/usr/local/share/ca-certificates/ASHBBCPSG.crt -r requirements.txt
 
 WORKDIR /opt/py-faster-rcnn/lib
 RUN make
@@ -118,6 +129,6 @@ RUN make
 WORKDIR /opt/py-faster-rcnn/caffe-fast-rcnn
 RUN make -j8  && make pycaffe
 
-RUN sudo apt-get install -y vim emacs
+RUN apt-get install -y vim emacs
 WORKDIR /opt
 CMD ["bash"]
