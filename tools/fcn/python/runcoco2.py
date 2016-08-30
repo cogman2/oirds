@@ -4,7 +4,7 @@
 #
 import sys
 #COCO_ROOT='/data2/MS_COCO/'
-COCO_ROOT='/opt/py-faster-rcnn/data/'
+COCO_ROOT='/opt/py-faster-rcnn/data/coco/'
 #OIRDS_ROOT='/home/robertsneddon/oirds/' 
 OIRDS_ROOT='/opt/py-faster-rcnn/oirds/' 
 TOOLS_ROOT=OIRDS_ROOT+'tools/fcn/python/'                    # Path to python tools for Caffe deep learning
@@ -24,8 +24,6 @@ from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 from gt_tool import *
 
-# set oirds root etc.
-
 
 A_ROOT=COCO_ROOT+'annotations/'                              # Path to annotations files
 R_ROOT=COCO_ROOT+'results/'
@@ -42,30 +40,34 @@ configFile=OIRDS_ROOT+'example_config/create_coco_db.json'
 pylab.rcParams['figure.figsize'] = (10.0, 8.0)
 
 def load_data(bool):
-    if bool: cc_tool = COCO(A_ROOT+A_FILE)
-    else: cc_tool = pickle.load( open("coco_object_save.p", "rb") )
+    if bool: 
+        cc_tool = COCO(A_ROOT+A_FILE)
+    else:
+        cc_tool = pickle.load(open(COCO_ROOT+'coco_object.p', 'rb'))
     return cc_tool
 
 def save_data(coco_object):
-    pickle.dump(coco_object, open( "coco_object_save.p", "wb") )
+    pickle.dump(coco_object, open(COCO_ROOT+'coco_object.p', 'wb' ))
+
+def load_df(bool):
+    if bool:
+        df_info = gttool.loadCoco()
+    else:
+        df_info = pickle.load(open(COCO_ROOT+'df_info.p', 'rb' ))
+    return df_info
+
+def save_df(df_info):
+    pickle.dump(df_info, open(COCO_ROOT+'df_info.p', 'wb' ))
+
+
+
+
+
 
 #targets = ['person','dog','skateboard']
 #targets = ['car']
-'''
-coco=load_data(True);
-cocoDt = coco.loadRes(resFile)
-cats = coco.loadCats(coco.getCatIds())
-nms=[cat['name'] for cat in cats]
-catIds = coco.getCatIds(catNms=['person','dog','skateboard'])
-imgIds = coco.getImgIds(catIds=catIds)
-img = coco.loadImgs(imgIds[np.random.randint(0,len(imgIds))])[0]
-annIds = coco.getAnnIds(imgIds=img['id'], catIds=catIds, iscrowd=None)
-anns = coco.loadAnns(annIds)
-my_poly = anns[0]['segmentation']
-my_bb = anns[0]['bbox']
-my_category = anns[0]['category_id']
-'''
+
 config = json.load(open(configFile))
 gttool = GTTool(config)
-df_info = gttool.loadCoco()
-#print df_info
+df_info = load_df(True)
+

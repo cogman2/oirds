@@ -93,38 +93,36 @@ class GTTool:
         import os
         import glob
         from pycocotools.coco import COCO
-
-# self.modes is a list of desired categories
-
         import pandas as pd
 #       self.coco = COCO(A_ROOT + A_FILE)
-        self.coco = COCO(A_ROOT + 'instances_train2014.json')
 
+        self.coco = COCO(A_ROOT + 'instances_train2014.json')
         catIds = self.coco.getCatIds(catNms=self.modes)
         imgIds = self.coco.getImgIds(catIds=catIds)
-
         img = self.coco.loadImgs(imgIds)
         annIds = self.coco.getAnnIds(imgIds=imgIds, catIds=catIds, iscrowd=None)
         anns = self.coco.loadAnns(annIds)
-  
         files = [im['file_name'] for im in img]
         polys = [ann['segmentation'] for ann in anns]
         bboxs = [ann['bbox'] for ann in anns]
         target_ids = [ann['category_id'] for ann in anns]
         index_num = [i for i in xrange(0,len(files))]
+# self.modes is a list of desired categories
         target_type = [self.modes for im in img]
         poly_temp = [" " for im in img]
-        df_info = pd.DataFrame(zip(*[files,polys,target_type,target_ids,bboxs, poly_temp]),columns=[u'Image Name',u'Intersection Polygon',u'Mode of Target Type',u'Targets IDs',u'Bounding Box',u'Poly Temp'])
-        df_info = self.polyString(df_info, 'Bounding Box')
-        df_info = self.polyString(df_info, 'Intersection Polygon')
-        self.xlsInfo = df_info
+
+        self.xlsInfo = pd.DataFrame(zip(*[files,polys,target_type,target_ids,bboxs, poly_temp]),columns=[u'Image Name',u'Intersection Polygon',u'Mode of Target Type',u'Targets IDs',u'Bounding Box',u'Poly Temp'])
+        self.xlsInfo = self.polyString(self.xlsInfo, 'Bounding Box')
+        self.xlsInfo = self.polyString(self.xlsInfo, 'Intersection Polygon')
         self.xlsInfo = self.xlsInfo.reset_index()
-#       df_info = self.xlsInfo
+        df_info = self.xlsInfo
         return df_info
 
     
     def polyString(self, df, label):
         if label == 'Bounding Box':
+            print "Inside Bounding Box"
+            print "length of bbx data is: ", len(df[label])
             for i, bbx in enumerate(df[label]):
                 x1 = str(bbx[0])+" "
                 y1 = str(bbx[1])
@@ -132,24 +130,20 @@ class GTTool:
                 y2 = str(bbx[1]+bbx[3])
                 df.loc[i,(label)] = u'['+x1+y1+'; '+x1+y2+'; '+x2+y2+'; '+x1+y2+']'
             return df
+
         elif label == 'Intersection Polygon':
-# Use np.shape(poly) to determine dimensions of polygon
-#            print "Inside Intersection Polygon"
             for i, poly in enumerate(df[label]):
                 if i >= 30: break
                 if type(poly) == dict:
-#                    print "#",i,"IS A DICT"
                     try:
                         poly = poly['counts']
                         if type(poly) == list:
                             del poly[0]
                             del poly[len(poly)-1:]
-#                            print "Inside TRY poly is: ",poly
                             poly = [poly]
                     except:
                         continue
                 j = 0
-#                polyStr = '['
                 polyStr = ''
                 while True:
                     try: 
@@ -162,19 +156,9 @@ class GTTool:
                     except:
                         break
                 polyStr = polyStr.replace('][','],[')
-#                polyStr = polyStr + ']'
                 df.loc[i, ('Poly Temp')] = polyStr 
-
         return df
 
-#''''           polyStr = u'['
-#              for i in range(0, len(poly)-1, 2):
-#                try:
-#                  polyStr = polyStr+u" "+str(poly[0][i])+u" "+str(poly[0][i+1])+u";"
-#                except:
-#                  continue
-#              polyStr=polyStr[:len(polyStr)-1]+u']'''
-#              df.loc[i, (label)]=polyStr 
     def getTestNames(self, percent, testSlice):
         testNames= set()
         labelCounts = [0 for i in xrange(len(self.label_colors))]
