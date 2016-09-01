@@ -121,13 +121,13 @@ class GTTool:
     
     def polyString(self, df, label):
         if label == 'Bounding Box':
-            print "Inside Bounding Box"
-            print "length of bbx data is: ", len(df[label])
+#            print "Inside Bounding Box"
+#            print "length of bbx data is: ", len(df[label])
             for i, bbx in enumerate(df[label]):
                 x1 = str(bbx[0])+" "
                 y1 = str(bbx[1])
                 x2 = str(bbx[0]+bbx[2])+" "
-                y2 = str(bbx[1]+bbx[3])
+                y2 = str(bbx[1]-bbx[3])
                 df.loc[i,(label)] = u'['+x1+y1+'; '+x1+y2+'; '+x2+y2+'; '+x1+y2+']'
             return df
 
