@@ -3,6 +3,7 @@
 # the Faster R-CNN
 #
 import sys
+# Just adding for testing
 #COCO_ROOT='/data2/MS_COCO/'
 COCO_ROOT='/opt/py-faster-rcnn/data/coco/'
 #OIRDS_ROOT='/home/robertsneddon/oirds/' 
