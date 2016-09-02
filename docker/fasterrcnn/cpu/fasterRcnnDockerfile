@@ -45,14 +45,15 @@ RUN apt-get update && apt-get install -y \
     apt-get clean
 
 # Use gcc 4.6
-#RUN update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-4.6 30 && \
-#    update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-4.6 30 && \
-#    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.6 30 && \
-#    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.6 30
+RUN update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-4.6 30 && \
+    update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-4.6 30 && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.6 30 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.6 30
 
 # Install Glog and Gflags 
 RUN cd /opt && \
-    wget --no-check-certificate --quiet https://google-glog.googlecode.com/files/glog-0.3.3.tar.gz && \
+#    wget --no-check-certificate --quiet https://google-glog.googlecode.com/files/glog-0.3.3.tar.gz
+    wget  --quiet --no-check-certificate http://pkgs.fedoraproject.org/lookaside/pkgs/glog/glog-0.3.3.tar.gz/a6fd2c22f8996846e34c763422717c18/glog-0.3.3.tar.gz && \
     tar zxvf glog-0.3.3.tar.gz && \
     cd glog-0.3.3 && \
     ./configure && \
@@ -61,9 +62,8 @@ RUN cd /opt && \
     cd .. && \
     rm -rf glog-0.3.3.tar.gz && \ 
     ldconfig && \
-    \
-    cd /opt && \
-    wget --no-check-certificate --quiet https://github.com/schuhschuh/gflags/archive/master.zip && \
+    cd /opt
+RUN    wget --no-check-certificate --quiet https://github.com/schuhschuh/gflags/archive/master.zip && \
     unzip master.zip && \
     cd gflags-master && \
     mkdir build && \
