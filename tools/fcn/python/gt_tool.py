@@ -127,13 +127,13 @@ class GTTool:
                 x1 = str(bbx[0])+" "
                 y1 = str(bbx[1])
                 x2 = str(bbx[0]+bbx[2])+" "
-                y2 = str(bbx[1]-bbx[3])
+                y2 = str(bbx[1]+bbx[3])
                 df.loc[i,(label)] = u'['+x1+y1+'; '+x1+y2+'; '+x2+y2+'; '+x1+y2+']'
             return df
 
         elif label == 'Intersection Polygon':
             for i, poly in enumerate(df[label]):
-                if i >= 30: break
+#                if i >= 5000: break
                 if type(poly) == dict:
                     try:
                         poly = poly['counts']

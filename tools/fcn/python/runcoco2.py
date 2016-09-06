@@ -70,5 +70,5 @@ def save_df(df_info):
 
 config = json.load(open(configFile))
 gttool = GTTool(config)
-df_info = load_df(True)
+df_info = load_df(False)
 
