@@ -92,7 +92,8 @@ RUN rm /opt/anaconda2/lib/libreadline* && \
 
 WORKDIR /tmp
 RUN wget --no-check-certificate https://sourceforge.net/projects/libpng/files/libpng15/older-releases/1.5.15/libpng-1.5.15.tar.gz
-RUN tar -xvf libpng-1.5.15.tar.gz
+RUN tar -xvf libpng-1.5.15.tar.gz && \
+    rm libpng-1.5.15.tar.gz
 WORKDIR /tmp/libpng-1.5.15
 RUN ./configure --prefix=/opt/libpng-1.5.15 && \
     make check -j$(nproc) && \

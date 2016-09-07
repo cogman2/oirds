@@ -14,10 +14,10 @@ WORKDIR /opt/py-faster-rcnn/data
 # Extras
 RUN sed -i 's/wget/wget --no-check-certificate/' ./scripts/fetch_faster_rcnn_models.sh && \
      ./scripts/fetch_faster_rcnn_models.sh && \
-    sed -i "121i            cfg.TRAIN.BBOX_REG = False" ../lib/roi_data_layer/layer.py && \
-    sed -i 's/caffe.set_gpu_mode()/caffe.set_cpu_mode()/' ../tools/train_net.py && \
-    sed -i 's/caffe.set_device(args.gpu_id)/# caffe.set_device(args.gpu_id)/' ../tools/train_net.py && \
-    sed -i 's/caffe.set_gpu_mode()/caffe.set_cpu_mode()/' ../tools/train_faster_rcnn_alt_opt.py && \
+    sed -i "121i\ \ \ \ \ \ \ \ \ \ \ \ cfg.TRAIN.BBOX_REG = False" ../lib/roi_data_layer/layer.py && \
+    sed -i 's/caffe.set_mode_gpu()/caffe.set_mode_cpu()/' ../tools/train_net.py && \
+    sed -i 's/caffe.set_device(cfg.GPU_ID)/# caffe.set_device(cfg.GPU_ID)/' ../tools/train_net.py && \
+    sed -i 's/caffe.set_mode_gpu()/caffe.set_mode_cpu()/' ../tools/train_faster_rcnn_alt_opt.py && \
     sed -i 's/caffe.set_device(args.gpu_id)/# caffe.set_device(args.gpu_id)/' ../tools/train_faster_rcnn_alt_opt.py && \
     rm faster_rcnn_models.tgz
 RUN conda config --set ssl_verify False && \
@@ -27,7 +27,8 @@ RUN    apt-get install zip && \
 RUN       unzip -o master.zip 
 WORKDIR /opt/py-faster-rcnn/data/coco-master/PythonAPI
 RUN	make \
-	&& make install
+	&& make install \
+	&& rm ../../master.zip
 
 	
 WORKDIR /opt

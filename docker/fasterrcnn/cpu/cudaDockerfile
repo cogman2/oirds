@@ -26,9 +26,9 @@ RUN             apt-get install -y \
                     libglu1-mesa-dev \
                 && apt-get install -y \
                     gcc-4.9 g++-4.9 gcc-4.9-base \
-                    gcc-4.8 g++-4.8 gcc-4.8-base \
-                    gcc-4.7 g++-4.7 gcc-4.7-base \
-                    gcc-4.6 g++-4.6 gcc-4.6-base \
+#                    gcc-4.8 g++-4.8 gcc-4.8-base \
+#                    gcc-4.7 g++-4.7 gcc-4.7-base \
+#                    gcc-4.6 g++-4.6 gcc-4.6-base \
                     clang-3.4 lldb-3.4 \
                 && gem install rake \
                 && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 100 \
@@ -101,14 +101,14 @@ RUN conda config --set ssl_verify False
 RUN conda install -c https://conda.anaconda.org/asmeurer pandoc
 
 # install jupyter notebook
-RUN conda install ipython
-RUN conda install jupyter
+#RUN conda install ipython
+#RUN conda install jupyter
 
 # update jupyter settings to allow outside connections
 # vi root/.jupyter/jupyter_notebook_config.py
-RUN mkdir -p -m 700 /root/.jupyter/ && \ 
-    echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py && \
-    echo "c.NotebookApp.base_url = '/home/'" >> /root/.jupyter/jupyter_notebook_config.py
+#RUN mkdir -p -m 700 /root/.jupyter/ && \ 
+#    echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py && \
+#    echo "c.NotebookApp.base_url = '/home/'" >> /root/.jupyter/jupyter_notebook_config.py
 
 # add matplotlib
 RUN conda install matplotlib
@@ -116,13 +116,13 @@ RUN conda install scikit-learn
 
 # Add Tini. Tini operates as a process subreaper for jupyter. This prevents
 # kernel crashes.
-ENV TINI_VERSION v0.6.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
-RUN chmod +x /usr/bin/tini
-ENTRYPOINT ["/usr/bin/tini", "--"]
+# ENV TINI_VERSION v0.6.0
+# ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
+#RUN chmod +x /usr/bin/tini
+# ENTRYPOINT ["/usr/bin/tini", "--"]
 
 #CMD ["jupyter", "notebook", "--port=8001", "--no-browser", "--ip=127.0.0.1"]
-CMD ["jupyter", "notebook", "--no-browser", "/dev/null"]
+# CMD ["jupyter", "notebook", "--no-browser", "/dev/null"]
 
 # docker run -d -i -t --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm --net=host --volume /home/holcomdl/workspace:/home -p 127.0.0.1:8001:8888 dlword2vec:ubuntu
 # http://localhost:6667/home/notebooks/opt/dlWord2vec/MVN%20Example%20Python%20Notebook.ipynb
