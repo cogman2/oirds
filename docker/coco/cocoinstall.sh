@@ -18,13 +18,18 @@ wget http://msvocds.blob.core.windows.net/coco2014/test2014.zip
 wget http://msvocds.blob.core.windows.net/annotations-1-0-3/instances_train-val2014.zip
 wget http://msvocds.blob.core.windows.net/annotations-1-0-3/person_keypoints_trainval2014.zip
 wget http://msvocds.blob.core.windows.net/annotations-1-0-4/image_info_test2014.zip
-wget https://data.vision.ee.ethz.ch/jpont/mcg/SCG-COCO-train2014-proposals.tgz
-
+wget https://data.vision.ee.ethz.ch/jpont/mcg/SCG-COCO-train2014-boxes.tgz
+wget https://data.vision.ee.ethz.ch/jpont/mcg/SCG-COCO-val2014-boxes.tgz
+wget https://data.vision.ee.ethz.ch/jpont/mcg/SCG-COCO-test2014-boxes.tgz
+wget http://www.cs.berkeley.edu/~rbg/faster-rcnn-data/instances_minival2014.json.zip
 FILE=selective_search_data.tgz
 wget http://www.cs.berkeley.edu/~rbg/fast-rcnn-data/$FILE
 ls *.zip | xargs -i unzip {} 
+ls *.tgz | xargs -i tar -xzf {} 
 tar -xzf selective_search_data.tgz 
 python $MY_DIRECTORY/../lib/datasets/tools/mcg_munge.py /SCG-COCO-train2014-proposals
+python $MY_DIRECTORY/../lib/datasets/tools/mcg_munge.py /SCG-COCO-val2014-proposals
+python $MY_DIRECTORY/../lib/datasets/tools/mcg_munge.py /SCG-COCO-test2014-proposals
 mkdir images
 mv train_2014 test_2014 val_2014 images
 if [ ! -d $MY_API_DIRECTORY ]; then
