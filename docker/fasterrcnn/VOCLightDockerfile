@@ -25,7 +25,7 @@ RUN       unzip -o master.zip
 WORKDIR /opt/py-faster-rcnn/data/coco-master/PythonAPI
 RUN	make \
 	&& make install
-
+RUN 	apt-get install  emacs
 	
 WORKDIR /opt
 CMD ["bash"]
