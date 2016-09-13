@@ -3,7 +3,8 @@ service docker stop
 ifconfig docker0 down
 iptables -t nat -F
 brctl delbr docker0
-#docker daemon --storage-opt=dm.basesize=20G &
+# docker daemon --storage-opt=dm.basesize=20G 
+dockerd --storage-opt dm.basesize=50G
 service docker start
  docker rm -v $( docker ps -a -q -f status=exited)
  docker rmi $( docker images -f "dangling=true" -q)
