@@ -104,7 +104,7 @@ RUN ./configure --prefix=/opt/libpng-1.5.15 && \
 WORKDIR /opt
 # RUN git clone --recursive https://github.com/rbgirshick/py-faster-rcnn.git && \
 RUN git clone --recursive https://github.com/cogman2/py-faster-rcnn.git
-RUN    sed -i.bak 's/\[1\]/\[0\]/g' /opt/py-faster-rcnn/caffe-fast-rcnn/src/caffe/layers/loss_layer.cpp
+#RUN    sed -i.bak 's/\[1\]/\[0\]/g' /opt/py-faster-rcnn/caffe-fast-rcnn/src/caffe/layers/loss_layer.cpp
 RUN    cd py-faster-rcnn/caffe-fast-rcnn && \
     cp Makefile.config.example Makefile.config && \
     \
