@@ -8,7 +8,7 @@ ENV PYTHONPATH=/opt/py-faster-rcnn/caffe-fast-rcnn/python:$PYTHONPATH \
     LD_LIBRARY_PATH=/opt/anaconda2/lib:/opt/libpng-1.5.15/lib:$LD_LIBRARY_PATH
 
 RUN         apt-get install -y ca-certificates
-COPY        ASHBBCPSG.crt /usr/local/share/ca-certificates
+#COPY        ASHBBCPSG.crt /usr/local/share/ca-certificates
 
 RUN	        update-ca-certificates \
 	        && export REQUESTS_CA_BUNDLE=/usr/local/share/ca-certificates/ASHBBCPSG.crt \
@@ -120,7 +120,8 @@ RUN    cd py-faster-rcnn/caffe-fast-rcnn && \
     sed -i.bak 's/CXX :=/CXX ?=/' Makefile 
 
 WORKDIR /opt/py-faster-rcnn/caffe-fast-rcnn/python 
-RUN pip install --cert /usr/local/share/ca-certificates/ASHBBCPSG.crt  -r requirements.txt
+#RUN pip install --cert /usr/local/share/ca-certificates/ASHBBCPSG.crt  -r requirements.txt
+RUN pip install  -r requirements.txt
 
 WORKDIR /opt/py-faster-rcnn/lib
 RUN make

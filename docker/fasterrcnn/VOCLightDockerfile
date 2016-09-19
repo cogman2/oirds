@@ -3,17 +3,17 @@ MAINTAINER Robert Sneddon <581894@bah.com>
 
 # Fixing a couple of scripts
 WORKDIR /opt/py-faster-rcnn/lib/fast_rcnn
-RUN sed -i.bak 's/__C.USE_GPU_NMS = True/__C.USE_GPU_NMS = False/' config.py
+#RUN sed -i.bak 's/__C.USE_GPU_NMS = True/__C.USE_GPU_NMS = False/' config.py
 
 WORKDIR /opt/py-faster-rcnn/tools
-RUN sed -i.bak "15iimport matplotlib" demo.py && \
-    sed -i.bak "16imatplotlib.use('Agg')" demo.py
+#RUN sed -i.bak "15iimport matplotlib" demo.py && \
+#    sed -i.bak "16imatplotlib.use('Agg')" demo.py
 
 WORKDIR /opt/py-faster-rcnn/data
 
 # Extras
 RUN sed -i.bak 's/wget/wget --no-check-certificate/' ./scripts/fetch_faster_rcnn_models.sh && \
-     ./scripts/fetch_faster_rcnn_models.sh && \
+#     ./scripts/fetch_faster_rcnn_models.sh && \
     sed -i.bak "121icfg.TRAIN.BBOX_REG = False" ../lib/roi_data_layer/layer.py && \
 #    sed -i.bak 's/ \ \CHECK_EQ/# \ \ CHECK_EQ' ../caffe-fast-rcnn/src/caffe/layers/loss_layer.cpp && \
     rm -r demo && \
