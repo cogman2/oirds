@@ -4,7 +4,7 @@ MAINTAINER  R. Sneddon <581894@bah.com>
 
 RUN         apt-get update \
 	    && apt-get install -y ca-certificates
-COPY        ASHBBCPSG.crt /usr/local/share/ca-certificates
+#COPY        ASHBBCPSG.crt /usr/local/share/ca-certificates
 
 RUN	        update-ca-certificates \
 	        && export REQUESTS_CA_BUNDLE=/usr/local/share/ca-certificates/ASHBBCPSG.crt
