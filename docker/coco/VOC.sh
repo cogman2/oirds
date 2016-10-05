@@ -1,3 +1,4 @@
+case 
 #!/bin/bash
 # Shell script to install VOC2007
 

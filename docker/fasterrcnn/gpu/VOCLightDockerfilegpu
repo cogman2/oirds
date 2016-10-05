@@ -1,0 +1,63 @@
+FROM rsneddon/fasterrcnngpu2
+MAINTAINER Robert Sneddon <581894@bah.com>
+
+# Fixing a couple of scripts
+WORKDIR /opt/py-faster-rcnn/lib/fast_rcnn
+RUN sed -i.bak 's/__C.USE_GPU_NMS = True/__C.USE_GPU_NMS = False/' config.py
+
+WORKDIR /opt/py-faster-rcnn/tools
+RUN sed -i.bak "15iimport matplotlib" demo.py && \
+    sed -i.bak "16imatplotlib.use('Agg')" demo.py
+
+WORKDIR /opt/py-faster-rcnn/data
+
+# Extras
+RUN sed -i.bak 's/wget/wget --no-check-certificate/' ./scripts/fetch_faster_rcnn_models.sh && \
+     ./scripts/fetch_faster_rcnn_models.sh
+RUN  sed -i.bak "121i\ \ \ \ \ \ \ \ \ \ \ \ cfg.TRAIN.BBOX_REG = False" ../lib/roi_data_layer/layer.py
+RUN  sed -i.bak 's/\ \ CHECK_EQ/#\ \ CHECK_EQ/' ../caffe-fast-rcnn/src/caffe/layers/loss_layer.cpp
+#    rm -r demo && \
+COPY faster_rcnn_models.tgz /opt/py-faster-rcnn/data
+RUN  tar zxvf faster_rcnn_models.tgz && \
+    rm faster_rcnn_models.tgz
+RUN conda config --set ssl_verify False && \
+    conda install -c mutirri pudb=2013.5.1
+RUN    apt-get install zip && \
+       wget https://github.com/pdollar/coco/archive/master.zip
+RUN       unzip -o master.zip 
+WORKDIR /opt/py-faster-rcnn/data/coco-master/PythonAPI
+RUN	make \
+	&& make install
+RUN 	apt-get install vim
+
+# install jupyter notebook
+RUN conda install ipython
+RUN conda install jupyter
+
+# update jupyter settings to allow outside connections
+# vi root/.jupyter/jupyter_notebook_config.py
+RUN mkdir -p -m 700 /root/.jupyter/ && \ 
+    echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.base_url = '/home/'" >> /root/.jupyter/jupyter_notebook_config.py
+
+# add matplotlib
+# RUN conda install matplotlib
+RUN conda install scikit-learn
+
+# Add Tini. Tini operates as a process subreaper for jupyter. This prevents
+# kernel crashes.
+ENV TINI_VERSION v0.6.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
+RUN chmod +x /usr/bin/tini
+ENTRYPOINT ["/usr/bin/tini", "--"]
+
+CMD ["jupyter", "notebook", "--port=8001", "--no-browser", "--ip=127.0.0.1"]
+#CMD ["jupyter", "notebook", "--no-browser", "/dev/null"]
+
+# docker run -d -i -t --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm --net=host --volume /home/holcomdl/workspace:/home -p 127.0.0.1:8001:8888 dlword2vec:ubuntu
+#docker run -d -P -ti  --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm --net=host  -v /home/robertsneddon/data/demo:/opt/py-faster-rcnn/data/demo  -p 127.0.0.1:8001:888  rsneddon/vocfasterrcnngpu
+
+# http://localhost:6667/home/notebooks/opt/dlWord2vec/MVN%20Example%20Python%20Notebook.ipynb
+	
+WORKDIR /opt
+CMD ["bash"]
