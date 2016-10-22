@@ -1,0 +1,197 @@
+FROM ubuntu:14.04
+MAINTAINER  R. Sneddon <581894@bah.com>
+# Start with CUDA Caffe dependencies 
+#FROM kaixhin/cuda-caffe-deps:7.5 
+
+RUN         apt-get update \
+	    && apt-get install -y ca-certificates
+#COPY        ASHBBCPSG.crt /usr/local/share/ca-certificates
+
+RUN	        update-ca-certificates \
+	        && export REQUESTS_CA_BUNDLE=/usr/local/share/ca-certificates/ASHBBCPSG.crt \
+                && apt-get install -y \
+                    software-properties-common \
+                    wget \
+                && echo 'deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.4 main' >> /etc/apt/sources.list \
+                && wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add - \
+                && add-apt-repository -y ppa:ubuntu-toolchain-r/test \
+                && apt-get update \
+                && apt-get install -y \
+                    make \
+                    git \
+                    curl \
+                    ruby \
+                && apt-get install -y \
+                    xorg-dev \
+                    libglu1-mesa-dev \
+                && apt-get install -y \
+                    gcc-4.9 g++-4.9 gcc-4.9-base \
+                    gcc-4.8 g++-4.8 gcc-4.8-base \
+                    gcc-4.7 g++-4.7 gcc-4.7-base \
+                    gcc-4.6 g++-4.6 gcc-4.6-base \
+                    clang-3.4 lldb-3.4 \
+                && gem install rake \
+                && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 100 \
+                && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 100
+
+# build cmake
+RUN curl -fsSLO http://www.cmake.org/files/v3.2/cmake-3.2.1.tar.gz \  
+    && tar zxf cmake-3.2.1.tar.gz \
+    && cd cmake-3.2.1 \  
+    &&  ./bootstrap \
+                && make \
+                && make install \
+    && cd .. \
+    && rm -rf cmake-3.2.1 cmake-3.2.1.tar.gz
+
+
+ENV cudaPkg cuda_7.5.18_linux.run
+ENV cudaUrl http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/$cudaPkg
+ENV cudaDriverVers 352.93
+ENV cudaDriverName NVIDIA-Linux-x86_64-$cudaDriverVers.run
+ENV cudaDriverUrl http://us.download.nvidia.com/XFree86/Linux-x86_64/$cudaDriverVers/$cudaDriverName
+ENV cudaLoc /usr/local/cuda
+
+# Install CUDA, general implementation for all but 4.2
+# Also remove doc,samples,nvvp to save some space
+RUN curl -fsSLO $cudaUrl \
+    && chmod 755 $cudaPkg 
+
+RUN mkdir /opt/cudaInstaller \
+    && ./$cudaPkg -extract='/opt/cudaInstaller' 
+
+# Overwrite the driver we get automatically with 7.5.18 (352.39) with the version of our actual gpu (352.93)
+RUN rm /opt/cudaInstaller/NVIDIA-Linux-x86_64-*.run
+RUN  curl -fsSLO $cudaDriverUrl \
+     && chmod 775 $cudaDriverName \
+     && mv $cudaDriverName /opt/cudaInstaller
+
+# Install the driver
+RUN ./opt/cudaInstaller/NVIDIA-Linux-x86_64-*.run -s --no-kernel-module
+
+# install the toolkit
+RUN ./opt/cudaInstaller/cuda-linux64-rel-7.5.18-*.run -noprompt
+
+# RUN ./$cudaPkg --silent --driver --toolkit --override \
+RUN rm -rf $cudaPkg 
+
+# Add CUDA to ld.so.conf
+RUN echo $cudaLoc/lib64 >> /etc/ld.so.conf \
+    && echo $cudaLoc/lib >> /etc/ld.so.conf \
+    && ldconfig
+
+ENV PATH /usr/local/cuda/bin:${PATH}
+ENV LD_LIBRARY_PATH /usr/local/cuda/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
+
+# configure git
+RUN git config --global http.sslVerify false
+RUN git config --global url."https://".insteadOf git://
+
+# install blas
+RUN apt-get install -y libblas*
+
+# Install cudnn
+ENV CUDNN_VERSION 3
+LABEL com.nvidia.cudnn.version="3"
+
+WORKDIR /tmp
+COPY  cudnn-7.0-linux-x64-v3.0-prod.tgz /tmp
+RUN   tar -xzf cudnn-7.0-linux-x64-v3.0-prod.tgz && \
+      cp -P cuda/include/cudnn.h /usr/include && \
+      cp -P cuda/lib64/libcudnn* /usr/lib/x86_64-linux-gnu/ && \
+      chmod a+r /usr/lib/x86_64-linux-gnu/libcudnn*
+
+RUN    rm cudnn-7.0-linux-x64-v3.0-prod.tgz && \
+    ldconfig
+
+# Add to Python path 
+# build fast-rcnn
+
+RUN apt-get update && \
+	apt-get install -y git python-numpy cython python-pip python-skimage \
+	python-protobuf python-opencv python-pandas python-yaml python-sklearn \
+	octave python-ipdb
+
+RUN	pip install easydict && pip install "ipython[notebook]"
+
+RUN apt-get update && apt-get install -y \
+    bc \
+    cmake \
+    curl \
+    gcc-4.6 \
+    g++-4.6 \
+    gcc-4.6-multilib \
+    g++-4.6-multilib \
+    gfortran \
+    git \
+    libprotobuf-dev \
+    libleveldb-dev \
+    libsnappy-dev \
+    libopencv-dev \
+    libboost-all-dev \
+    libhdf5-serial-dev \
+    liblmdb-dev \
+    libjpeg62 \
+    libfreeimage-dev \
+    libatlas-base-dev \
+    pkgconf \
+    protobuf-compiler \
+    python-dev \
+    python-pip \
+    unzip && \
+    apt-get clean
+
+# Use gcc 4.6
+RUN update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-4.6 30 && \
+    update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-4.6 30 && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.6 30 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.6 30
+
+
+# Install Glog and Gflags 
+RUN cd /opt && \
+#    wget --no-check-certificate --quiet https://google-glog.googlecode.com/files/glog-0.3.3.tar.gz
+    wget  --quiet --no-check-certificate http://pkgs.fedoraproject.org/lookaside/pkgs/glog/glog-0.3.3.tar.gz/a6fd2c22f8996846e34c763422717c18/glog-0.3.3.tar.gz && \
+    tar zxvf glog-0.3.3.tar.gz && \
+    cd glog-0.3.3 && \
+    ./configure && \
+    make -j$(nproc) && \
+    make install -j$(nproc) && \
+    cd .. && \
+    rm -rf glog-0.3.3.tar.gz && \ 
+    ldconfig && \
+    cd /opt
+
+RUN apt-get install unzip
+
+RUN    wget --no-check-certificate --quiet https://github.com/schuhschuh/gflags/archive/master.zip && \
+    unzip master.zip && \
+    cd gflags-master && \
+    mkdir build && \
+    cd build && \
+    export CXXFLAGS="-fPIC" && \
+    cmake .. && \
+    make VERBOSE=1 && \
+    make  -j$(nproc) && \
+    make install -j$(nproc) && \
+    cd ../.. && \
+    rm master.zip
+
+
+RUN cd /opt && \
+	git clone --recursive https://github.com/rbgirshick/fast-rcnn.git
+
+ENV PYTHONPATH=/opt/fast-rcnn/caffe-fast-rcnn/python:$PYTHONPATH 
+# Set /opt/fast-rcnn as working directory 
+WORKDIR /opt/fast-rcnn/caffe-fast-rcnn
+
+#RUN	pip install easydict && pip install "ipython[notebook]"
+
+# octave is good enough for the PASCAL VOC stuff
+#RUN ln -s /usr/bin/octave /usr/bin/matlab
+
+
+ADD Makefile.config /opt/fast-rcnn/caffe-fast-rcnn/Makefile.config
+
+RUN	cd /opt/fast-rcnn/lib && make -j4 && \
+	cd ../caffe-fast-rcnn && make -j4 && make -j4 pycaffe
