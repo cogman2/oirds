@@ -1,4 +1,4 @@
-FROM rsneddon/fasterrcnngpu
+FROM rsneddon/fasterrcnngpu2
 MAINTAINER Robert Sneddon <581894@bah.com>
 
 # Fixing a couple of scripts

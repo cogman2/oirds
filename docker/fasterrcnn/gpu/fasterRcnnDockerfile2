@@ -1,0 +1,41 @@
+FROM rsneddon/fasterrcnngpu1
+MAINTAINER Robert Sneddon <581894@bah.com>
+
+# Setup the fast-rcnn
+WORKDIR /opt
+#RUN git clone --recursive https://github.com/rbgirshick/py-faster-rcnn.git
+RUN git clone  https://github.com/cogman2/py-faster-rcnn.git
+RUN sed -i.bak 's/\[1\]/\[0\]/g' /opt/py-faster-rcnn/caffe-fast-rcnn/src/caffe/layers/loss_layer.cpp 
+RUN sed -i.bak 's/CHECK_EQ(outer_num_ \* inner_num_, bottom\[1\]->count())/CHECK_EQ(bottom\[1\]->count(), bottom\[1\]->count())/g' /opt/py-faster-rcnn/caffe-fast-rcnn/src/caffe/layers/softmax_loss_layer.cpp
+RUN sed -i.bak 's/\ \ \ \ \ \ \ \ assert bottom\[0\]\.data\.shape\[0\] == 1/#\\ \ \ \ \ \ assert bottom\[0\]\.data\.shape\[0\] == 1/g' /opt/py-faster-rcnn/lib/rpn/anchor_target_layer.py
+RUN cd py-faster-rcnn/caffe-fast-rcnn && \
+    cp Makefile.config.example Makefile.config && \
+    \
+    echo "CXX := /usr/bin/g++-4.9" >> Makefile.config && \
+     echo "ANACONDA_HOME := /opt/anaconda2" >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+    echo "USE_CUDNN := 1" >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+    echo 'PYTHON_INCLUDE := $(ANACONDA_HOME)/include $(ANACONDA_HOME)/include/python2.7 $(ANACONDA_HOME)/lib/python2.7/site-packages/numpy/core/include' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+    echo 'CUDNN_INCLUDE := /usr/include' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+    echo 'CUDNN_LIB := /usr/lib/x86_64-linux-gnu/' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+    echo 'PYTHON_LIB := $(ANACONDA_HOME)/lib' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+    echo 'INCLUDE_DIRS := $(PYTHON_INCLUDE) $(CUDNN_INCLUDE) /usr/local/include' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+    echo 'LIBRARY_DIRS := $(PYTHON_LIB) $(CUDNN_LIB) /usr/local/lib /usr/lib' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+    echo 'WITH_PYTHON_LAYER := 1' >> /opt/py-faster-rcnn/caffe-fast-rcnn/Makefile.config && \
+    sed -i 's/CXX :=/CXX ?=/' Makefile 
+
+WORKDIR /opt/py-faster-rcnn/caffe-fast-rcnn/python 
+#RUN    pip install  --index-url=http//pypi.python.org/simple/ leveldb
+#RUN pip install  --cert=/usr/local/share/ca-certificates/ASHBBCPSG.crt leveldb
+#RUN pip install --cert=/usr/local/share/ca-certificates/ASHBBCPSG.crt --index-url=http//pypi.python.org/simple/ -r requirements.txt
+#RUN pip install  --cert=/usr/local/share/ca-certificates/ASHBBCPSG.crt -r requirements.txt
+RUN pip install -r requirements.txt
+
+WORKDIR /opt/py-faster-rcnn/lib
+RUN make
+
+WORKDIR /opt/py-faster-rcnn/caffe-fast-rcnn
+RUN make -j8  && make pycaffe
+
+RUN apt-get install -y vim emacs
+WORKDIR /opt
+CMD ["bash"]

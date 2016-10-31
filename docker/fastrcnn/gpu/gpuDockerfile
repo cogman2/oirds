@@ -1,6 +1,7 @@
 FROM ubuntu:14.04
 MAINTAINER  R. Sneddon <581894@bah.com>
-# Shamelessly adapted from  D. Holcomb <556157@bah.com>
+# Start with CUDA Caffe dependencies 
+#FROM kaixhin/cuda-caffe-deps:7.5 
 
 RUN         apt-get update \
 	    && apt-get install -y ca-certificates
@@ -44,7 +45,6 @@ RUN curl -fsSLO http://www.cmake.org/files/v3.2/cmake-3.2.1.tar.gz \
     && rm -rf cmake-3.2.1 cmake-3.2.1.tar.gz
 
 
-# CUDA 7.5
 ENV cudaPkg cuda_7.5.18_linux.run
 ENV cudaUrl http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/$cudaPkg
 ENV cudaDriverVers 352.93
@@ -90,53 +90,7 @@ RUN git config --global url."https://".insteadOf git://
 # install blas
 RUN apt-get install -y libblas*
 
-# install python    
-RUN wget https://3230d63b5fc54e62148e-c95ac804525aac4b6dba79b00b39d1d3.ssl.cf1.rackcdn.com/Anaconda2-2.4.1-Linux-x86_64.sh
-RUN chmod 775 Anaconda2-2.4.1-Linux-x86_64.sh 
-RUN ./Anaconda2-2.4.1-Linux-x86_64.sh -b -p /opt/anaconda2/
-ENV PATH=/opt/anaconda2/bin/:$PATH
-RUN conda update conda
-RUN conda config --set ssl_verify False
-RUN conda install -c https://conda.anaconda.org/asmeurer pandoc
-
-# install jupyter notebook
-#RUN conda install ipython
-#RUN conda install jupyter
-
-# update jupyter settings to allow outside connections
-# vi root/.jupyter/jupyter_notebook_config.py
-#RUN mkdir -p -m 700 /root/.jupyter/ && \ 
-#    echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py && \
-#    echo "c.NotebookApp.base_url = '/home/'" >> /root/.jupyter/jupyter_notebook_config.py
-
-# add matplotlib
-RUN conda install matplotlib
-RUN conda install scikit-learn
-
-# Add Tini. Tini operates as a process subreaper for jupyter. This prevents
-# kernel crashes.
-#ENV TINI_VERSION v0.6.0
-#ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/bin/tini
-#RUN chmod +x /usr/bin/tini
-#ENTRYPOINT ["/usr/bin/tini", "--"]
-
-#CMD ["jupyter", "notebook", "--port=8001", "--no-browser", "--ip=127.0.0.1"]
-#CMD ["jupyter", "notebook", "--no-browser", "/dev/null"]
-
-# docker run -d -i -t --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm --net=host --volume /home/holcomdl/workspace:/home -p 127.0.0.1:8001:8888 dlword2vec:ubuntu
-# http://localhost:6667/home/notebooks/opt/dlWord2vec/MVN%20Example%20Python%20Notebook.ipynb
-
 # Install cudnn
-#ENV CUDNN_VERSION 5
-#LABEL com.nvidia.cudnn.version="5"
-
-#ENV CUDNN_DOWNLOAD_SUM 40d506d0a8a00a3faccce1433346806b8cd2535683b6f08a63683ce6e474419f
-
-# RUN curl -fsSL http://developer.download.nvidia.com/compute/redist/cudnn/v5.1/cudnn-7.5-linux-x64-v5.1.tgz -O && \
-#    echo "$CUDNN_DOWNLOAD_SUM  cudnn-7.5-linux-x64-v5.1.tgz" | sha256sum -c --strict - && \
-#COPY  cudnn-7.5-linux-x64-v5.1-ga.tgz /tmp
-#RUN   tar -xzf cudnn-7.5-linux-x64-v5.1-ga.tgz -C /usr/local --wildcards 'cuda/lib64/libcudnn.so.*'  && \
-
 ENV CUDNN_VERSION 3
 LABEL com.nvidia.cudnn.version="3"
 
@@ -147,12 +101,97 @@ RUN   tar -xzf cudnn-7.0-linux-x64-v3.0-prod.tgz && \
       cp -P cuda/lib64/libcudnn* /usr/lib/x86_64-linux-gnu/ && \
       chmod a+r /usr/lib/x86_64-linux-gnu/libcudnn*
 
-#COPY cudnn.h /usr/local/cuda-7.5/cuda/include
-#COPY cudnn.h /usr/local/cuda/include
-#      ls /usr/local/cuda/include && \
-#      cp  /usr/local/cuda/include/cudnn.h /usr/local/include
-
-#RUN find . -name "cud*.h"  >> cudnn.txt && \
-#    cat cudnn.txt
 RUN    rm cudnn-7.0-linux-x64-v3.0-prod.tgz && \
     ldconfig
+
+# Add to Python path 
+# build fast-rcnn
+
+RUN apt-get update && \
+	apt-get install -y git python-numpy cython python-pip python-skimage \
+	python-protobuf python-opencv python-pandas python-yaml python-sklearn \
+	octave python-ipdb
+
+RUN	pip install easydict && pip install "ipython[notebook]"
+
+RUN apt-get update && apt-get install -y \
+    bc \
+    cmake \
+    curl \
+    gcc-4.6 \
+    g++-4.6 \
+    gcc-4.6-multilib \
+    g++-4.6-multilib \
+    gfortran \
+    git \
+    libprotobuf-dev \
+    libleveldb-dev \
+    libsnappy-dev \
+    libopencv-dev \
+    libboost-all-dev \
+    libhdf5-serial-dev \
+    liblmdb-dev \
+    libjpeg62 \
+    libfreeimage-dev \
+    libatlas-base-dev \
+    pkgconf \
+    protobuf-compiler \
+    python-dev \
+    python-pip \
+    unzip && \
+    apt-get clean
+
+# Use gcc 4.6
+RUN update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-4.6 30 && \
+    update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-4.6 30 && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.6 30 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.6 30
+
+
+# Install Glog and Gflags 
+RUN cd /opt && \
+#    wget --no-check-certificate --quiet https://google-glog.googlecode.com/files/glog-0.3.3.tar.gz
+    wget  --quiet --no-check-certificate http://pkgs.fedoraproject.org/lookaside/pkgs/glog/glog-0.3.3.tar.gz/a6fd2c22f8996846e34c763422717c18/glog-0.3.3.tar.gz && \
+    tar zxvf glog-0.3.3.tar.gz && \
+    cd glog-0.3.3 && \
+    ./configure && \
+    make -j$(nproc) && \
+    make install -j$(nproc) && \
+    cd .. && \
+    rm -rf glog-0.3.3.tar.gz && \ 
+    ldconfig && \
+    cd /opt
+
+RUN apt-get install unzip
+
+RUN    wget --no-check-certificate --quiet https://github.com/schuhschuh/gflags/archive/master.zip && \
+    unzip master.zip && \
+    cd gflags-master && \
+    mkdir build && \
+    cd build && \
+    export CXXFLAGS="-fPIC" && \
+    cmake .. && \
+    make VERBOSE=1 && \
+    make  -j$(nproc) && \
+    make install -j$(nproc) && \
+    cd ../.. && \
+    rm master.zip
+
+
+RUN cd /opt && \
+	git clone --recursive https://github.com/rbgirshick/fast-rcnn.git
+
+ENV PYTHONPATH=/opt/fast-rcnn/caffe-fast-rcnn/python:$PYTHONPATH 
+# Set /opt/fast-rcnn as working directory 
+WORKDIR /opt/fast-rcnn/caffe-fast-rcnn
+
+#RUN	pip install easydict && pip install "ipython[notebook]"
+
+# octave is good enough for the PASCAL VOC stuff
+#RUN ln -s /usr/bin/octave /usr/bin/matlab
+
+
+ADD Makefile.config /opt/fast-rcnn/caffe-fast-rcnn/Makefile.config
+
+RUN	cd /opt/fast-rcnn/lib && make -j4 && \
+	cd ../caffe-fast-rcnn && make -j4 && make -j4 pycaffe
