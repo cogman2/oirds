@@ -96,8 +96,8 @@ RUN wget https://3230d63b5fc54e62148e-c95ac804525aac4b6dba79b00b39d1d3.ssl.cf1.r
 RUN chmod 775 Anaconda2-2.4.1-Linux-x86_64.sh 
 RUN ./Anaconda2-2.4.1-Linux-x86_64.sh -b -p /opt/anaconda2/
 ENV PATH=/opt/anaconda2/bin/:$PATH
-RUN conda update conda
 RUN conda config --set ssl_verify False
+RUN conda update conda
 RUN conda install -c https://conda.anaconda.org/asmeurer pandoc
 
 # install jupyter notebook
